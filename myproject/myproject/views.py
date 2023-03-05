@@ -1,9 +1,18 @@
 
+from django.http import HttpResponse # for returning data
 
-import 
+
+
+HTML_STRING = """
+
+
+
+
+
+"""
+
+
 
 def home(request):
-    
-
 
     return 
