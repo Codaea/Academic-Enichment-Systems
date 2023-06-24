@@ -207,8 +207,51 @@ def dbsetup():
 @has_permission('config')
 def dbupload_users():
     if request.method == 'POST':
-      f = request.files['file']
-      return 'uploaded!.'
+        try: # running try except in case no backup has ever made (first ever run)
+            cursor.execute("DROP TABLE users") # deletes existing users table
+        except:
+            print("No user Table to drop!")
+        cursor.execute( # creates new table
+                        '''CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER,
+                        username VARCHAR NOT NULL,
+                        password VARCHAR NOT NULL,
+                        last_name VARCHAR NOT NULL,
+                        first_name VARCHAR NOT NULL,
+                        advisory_room SMALLINT NOT NULL,
+                        user_email VARCHAR NOT NULL,
+                        role VARCHAR NOT NULL
+                        );
+                        ''')
+        
+        csv_file = request.files['file'] # gets file from upload
+        csv_data = csv_file.stream.read().decode("utf-8") 
+        csv_data = StringIO(csv_data) # Convert the FileStorage object to a text mode file-like object
+        csv_reader = csv.reader(csv_data)
+        try:
+            next(csv_reader)
+        except StopIteration: # Handle the case when there are no more rows to iterate over
+            pass
+        #try:
+        for row in csv_reader: # iterates through and adds following rows
+            cursor.execute('''INSERT INTO masterschedule (
+                        studentId,
+                        lastName,
+                        firstName,
+                        advisoryRoom,
+                        period1,
+                        period2,
+                        period3,
+                        period4,
+                        period5,
+                        period6,
+                        period7,
+                        period8)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', row)
+        connect.commit()# Commit the changes and close the connection
+        return 'uploaded!'
+    else:
+        return 'wrong request type'
 
 
 # uploading the schedule table
@@ -220,23 +263,24 @@ def dbupload_schedule():
             cursor.execute("DROP TABLE schedule_backup") # deletes existing backup table
         except:
             print("No existing backuptable to delete")
+        
         cursor.execute("CREATE TABLE schedule_backup AS SELECT * FROM masterschedule;") # creates new backup table from old schedule
         cursor.execute("DROP TABLE masterschedule;") # deletes old master
         cursor.execute( # creates new table
                         '''CREATE TABLE IF NOT EXISTS masterschedule (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        studentId INT NOT NULL,
+                        studentId INTEGER,
                         lastName VARCHAR(25) NOT NULL,
                         firstName VARCHAR(25) NOT NULL,
                         advisoryRoom SMALLINT NOT NULL,
                         period1 SMALLINT,
                         period2 SMALLINT,
+                        period3 SMALLINT,
                         period4 SMALLINT,
                         period5 SMALLINT,
                         period6 SMALLINT,
                         period7 SMALLINT,
                         period8 SMALLINT
-                        );\
+                        );
                         ''')
         
         csv_file = request.files['file'] # gets file from upload
@@ -247,6 +291,7 @@ def dbupload_schedule():
             next(csv_reader)
         except StopIteration: # Handle the case when there are no more rows to iterate over
             pass
+        #try:
         for row in csv_reader: # iterates through and adds following rows
             cursor.execute('''INSERT INTO masterschedule (
                         studentId,
@@ -255,20 +300,19 @@ def dbupload_schedule():
                         advisoryRoom,
                         period1,
                         period2,
+                        period3,
                         period4,
                         period5,
                         period6,
                         period7,
                         period8)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', row[:11]) # Use row[:11] to exclude the extra value
-
-        # Commit the changes and close the connection
-        ## connect.commit()
-        return 'uploaded!.'
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', row)
+        connect.commit()# Commit the changes and close the connection
+        return 'uploaded!'
     
 
     else:
-        return 'Error Somewhere I havent found' # if somehow its a get request instead of POST
+        return 'Error With Table!' # if somehow its a get request instead of POST
 
 # shows current master scedule in a html table
 @app.route('/config/dbsetup/currentschedule')

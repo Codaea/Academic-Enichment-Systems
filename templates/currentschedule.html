@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Current Schedule</title>
+    </head>
+    <body>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student Id</th>
+                        <th>Last Name</th>
+                        <th>First Name</th>
+                        <th>Advisory Class</th>
+                        <th>period1</th>
+                        <th>period2</th>
+                        <th>period3</th>
+                        <th>period4</th>
+                        <th>period5</th>
+                        <th>period6</th>
+                        <th>period7</th>
+                        <th>period8</th>
+
+                        <!-- Add more table headers for each column in your table -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                        <td>{{ row[4] }}</td>
+                        <td>{{ row[5] }}</td>
+                        <td>{{ row[6] }}</td>
+                        <td>{{ row[7] }}</td>
+                        <td>{{ row[8] }}</td>
+                        <td>{{ row[9] }}</td>
+                        <td>{{ row[10] }}</td>
+                        <td>{{ row[11] }}</td>
+                        <td>{{ row[12] }}</td>
+
+                        <!-- Add more table cells for each column in your table -->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
