@@ -45,7 +45,7 @@ def create_jwt(username, role):
     payload = {
         'username': username,
         'role': role,
-        'exp': datetime.utcnow() + timedelta(minutes=5)  # Expiration time: 1 hour from now
+        'exp': datetime.utcnow() + timedelta(minutes=5)  # Experation Time Set here (Make a varible later?)
     }
     token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
     return token
@@ -94,7 +94,7 @@ def home():
 
            #need to add auto send to right panel based on if admin or teacher
 
-           
+
            return 'all good!'
        
     return redirect('/login')
@@ -131,6 +131,7 @@ def login():
         # Render the login page
         return render_template('login.html', error_message='')
 
+# Logout Route. Removes jwt sessiondata
 @app.route('/logout', methods=['GET','POST'])
 def logout():
     if session.get('token'):
@@ -164,6 +165,8 @@ def attendancereport():
 @has_permission('edit student db')
 def admin():
     return 'Admin Panel'
+    
+    # appears to be broken chatgpt code. fix later
     if request.method == 'POST':
         file = request.files['csv_file']
         if file.filename == '':
