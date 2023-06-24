@@ -1,11 +1,32 @@
 from flask import Flask, request, jsonify, make_response, request, render_template, session, flash
 import jwt # used for authentication
-from datetime import datetime, timedelta # also used for authentication
-from functools import wraps # not sure what this does
+from datetime import datetime, timedelta # also used for authentication and SQL
+from functools import wraps # handles auth for token_required
+import sqlite3
+import os
+
+# move this to another init file???
+if not os.path.exists('database.db'):
+    # Create the database file or perform any initialization steps
+    # For example, you can create an empty database using a database engine or framework
+
+    # Example using SQLite:
+    print("No Database. Creating Now.")
+    conn = sqlite3.connect('database.db')
+    conn.close()
+
+    print("Database created successfully!")
+else:
+    print("Database already exists.")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "b'&x85GFxabx06?xebx0fx96xabxe8xdbxe9x92xb38Lxfbxd7xfbxeaxc8["
 
+connect = sqlite3.connect('database.db')
+connect.execute(
+ #   'CREATE TABLE IF NOT EXISTS PARTICIPANTS (name TEXT, \
+  #  email TEXT, city TEXT, country TEXT, phone TEXT)'
+  )
 
 def token_required(func): # sets up token authentication
     @wraps(func)
