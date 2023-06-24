@@ -5,19 +5,6 @@ from functools import wraps # handles auth for token_required
 import sqlite3
 import os
 
-# move this to another init file???
-if not os.path.exists('database.db'):
-    # Create the database file or perform any initialization steps
-    # For example, you can create an empty database using a database engine or framework
-
-    # Example using SQLite:
-    print("No Database. Creating Now.")
-    conn = sqlite3.connect('database.db')
-    conn.close()
-
-    print("Database created successfully!")
-else:
-    print("Database already exists.")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "b'&x85GFxabx06?xebx0fx96xabxe8xdbxe9x92xb38Lxfbxd7xfbxeaxc8["

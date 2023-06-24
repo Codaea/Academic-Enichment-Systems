@@ -1,25 +1,37 @@
-CREATE TABLE IF NOT EXISTS USERS (
-    id int NOT NULL AUTO_INCREMENT,
-    lastName varchar(255) NOT NULL,
-    firstName varchar(255),
-    email varchar(255),
-    password varchar(255),
-    prefix varchar(50),
+THIS IS ALL OUTDATED, CHECK initdb.py
 
+
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    last_name VARCHAR(25) NOT NULL,
+    first_name VARCHAR(25),
+    user_email VARCHAR(200) UNIQUE,
+    password VARCHAR(50), NOT NULL
+    prefix VARCHAR(50),
+    room INTEGER NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS masterschedule (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    studentId INT NOT NULL,
+    lastName VARCHAR(25) NOT NULL,
+    firstName VARCHAR(25) NOT NULL,
+    advisoryRoom SMALLINT NOT NULL,
+    period1 SMALLINT,
+    period2 SMALLINT,
+    period4 SMALLINT,
+    period5 SMALLINT,
+    period6 SMALLINT,
+    period7 SMALLINT,
+    period8 SMALLINT
     );
 
-
-CREATE TABLE IF NOT EXISTS MASTERSCHEDULE (
-    id int NOT NULL AUTO_INCREMENT,
-    studentId int NOT NULL,
-    lastName varchar(255) NOT NULL,
-    firstName varchar(255) NOT NULL,
-    advisoryRoom SMALLINT NOT NULL,
-    1Period SMALLINT,
-    2Period SMALLINT,
-    4Period SMALLINT,
-    5Period SMALLINT,
-    6Period SMALLINT,
-    7Period SMALLINT,
-    8Period SMALLINT,
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    last_name VARCHAR(25) NOT NULL,
+    first_name VARCHAR(25),
+    user_email VARCHAR(200) UNIQUE,
+    password VARCHAR(50),
+    prefix VARCHAR(50)
 );
