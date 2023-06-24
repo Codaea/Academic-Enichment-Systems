@@ -20,12 +20,13 @@ if not os.path.exists('database.db'):
   connect.execute( # Creates user db if it doesnt exist
       "CREATE TABLE IF NOT EXISTS users (\
       id INTEGER PRIMARY KEY AUTOINCREMENT,\
+      username VARCHAR(25),\
       last_name VARCHAR(25) NOT NULL,\
       first_name VARCHAR(25),\
       user_email VARCHAR(200) UNIQUE,\
       password VARCHAR(50),\
       prefix VARCHAR(50),\
-      auth_level INTEGER\
+      role VARCHAR(25)\
     );"
     )
     
