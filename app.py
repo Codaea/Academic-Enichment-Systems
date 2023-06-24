@@ -3,25 +3,35 @@ import sqlite3 # databasing software
 from functools import wraps # decorators
 import jwt # auth
 from datetime import datetime, timedelta # sets jwt expiry
-import json
+import json # auth checking
+import csv # for db uploading
+from io import StringIO # done for csv conversion
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
 
 # SQLite database connection
-conn = sqlite3.connect('database.db', check_same_thread=False)
-conn.row_factory = sqlite3.Row
-cursor = conn.cursor()
+connect = sqlite3.connect('database.db', check_same_thread=False)
+connect.row_factory = sqlite3.Row
+cursor = connect.cursor()
+
+
 
 # User roles and their corresponding permissions
 ROLES = {
-    'root': ['read requests', 'write requests', 'gen requests', 'gen reports', 'edit student db', 'edit config'],
-    'admin': ['read requests', 'write requests', 'gen requests', 'gen reports', 'edit student db', 'edit config'],
+    'root': ['read requests', 'write requests', 'gen requests', 'gen reports', 'read reports', 'config'],
+    'admin': ['read requests', 'write requests', 'gen requests', 'gen reports', 'read reports','edit schedule'],
     'eUser': ['read requests', 'write requests', 'gen requests', 'gen reports', 'read reports'],
     'attendance': ['read reports', 'gen reports'],
-    'user': ['read requests', 'write requests']
+    'user': ['requests']
 }
 
+def db_upload_table(database,):
+    """
+    quick function for connecting, and uploading a db 
+    """
+
+    return
 
 def authenticate(username, password):
     """
@@ -45,7 +55,7 @@ def create_jwt(username, role):
     payload = {
         'username': username,
         'role': role,
-        'exp': datetime.utcnow() + timedelta(minutes=5)  # Experation Time Set here (Make a varible later?)
+        'exp': datetime.utcnow() + timedelta(hours=1)  # Experation Time Set here (Make a varible later?)
     }
     token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
     return token
@@ -82,24 +92,38 @@ def has_permission(permission):
         return wrapper
     return decorator
 
-# app routes
+# ALL app routes
 
 #home route
 @app.route('/', methods=['GET'])
 def home():
-    token = session.get('token') 
+    """
+    Sends users to login if not already logged in, then sends them to respective dashboard based on privilages.
+    
+    """
+    token = session.get('token')
     if token: # checks to see if there even is a token
        if decode_jwt(token=token): # checks for any jwt errors. if any, it returns none from
-           #put any code that you want to run when verifyed here on homepage
+            #
+            role = decode_jwt(token=token).get('role')# decodes token and gets key 'role' from token json
+            if role == 'user':
+                return 'user'
+            elif role == 'attendance':
+                return 'attendance'
+            elif role == 'admin':
+                return 'admin'
+            elif role == 'eUser':
+                return 'Elivated User'
+            elif role == 'root':
+                return 'root user'
+            else:
+                return 'Error! No Role!'
+            #need to add auto send to right panel based on if admin or teacher
 
-           #need to add auto send to right panel based on if admin or teacher
 
-
-           return 'all good!'
+            return 'all good!'
        
     return redirect('/login')
-
-
 
 
 # login route
@@ -121,7 +145,7 @@ def login():
                 decode_jwt(token=token)
                 session['token'] = token  # Save the JWT token to the session
                 response = 'Login Sucessfull! Token is ' + token
-                return response
+                return redirect('/')
                 
         else:
             error_message = "Invalid credentials. Please try again."
@@ -131,7 +155,8 @@ def login():
         # Render the login page
         return render_template('login.html', error_message='')
 
-# Logout Route. Removes jwt sessiondata
+
+# Logout Route. Removes jwt sessiondata. might need to use form in future.
 @app.route('/logout', methods=['GET','POST'])
 def logout():
     if session.get('token'):
@@ -140,18 +165,21 @@ def logout():
     else:
         return "You where never logged in!"
 
+
 # teacher requesting landing page
-@app.route('/erequests', methods=['GET'])
+@app.route('/erequests')
 @has_permission('write requests')
 def erequests():
     return 'Teacher , Educator Requests'
 
+
 # generating and printing requests
-@app.route('/generaterequests', methods=['GET'])
+@app.route('/generaterequests', methods=['GET','POST'])
 @has_permission('gen requests')
 def printrequests():
 
     return 'Generating and Printing Page'
+
 
 # for the attendance office to read what happened. might also send email
 @app.route('/attendancereport', methods=['GET'])
@@ -160,25 +188,95 @@ def attendancereport():
 
     return 'attendace reports for tina in the office!'
 
-# admin panel, controlls all the student scedules, teacher admins
-@app.route('/admin', methods=['GET', 'POST'])
-@has_permission('edit student db')
-def admin():
-    return 'Admin Panel'
-    
-    # appears to be broken chatgpt code. fix later
+
+# homepage for all setup related tasks. user might have access to one, but not all
+@app.route('/config', methods=['GET', 'POST'])
+@has_permission('config')
+def config():
+
+    return render_template('config.html')
+# page with links to other setup routes
+@app.route('/config/dbsetup', methods=['GET', 'POST'])
+@has_permission('config')
+def dbsetup():
+    return render_template('dbsetup.html')
+
+
+# uploading the users table
+@app.route('/config/dbsetup/uploadusers', methods=['GET', 'POST'])
+@has_permission('config')
+def dbupload_users():
     if request.method == 'POST':
-        file = request.files['csv_file']
-        if file.filename == '':
-            return 'No file selected!'
-        if file:
-            df = pd.read_csv(file)
-            connect = sqlite3.connect('database.db')
-            df.to_sql('masterschedule', connect, if_exists='replace', index=False)
-            conn.close()
-            return 'CSV file uploaded and saved to database!'
-    return render_template('upload.html')
+      f = request.files['file']
+      return 'uploaded!.'
+
+
+# uploading the schedule table
+@app.route('/config/dbsetup/uploadschedule', methods=['GET', 'POST'])
+@has_permission('config')
+def dbupload_schedule():
+    if request.method == 'POST':
+        try: # running try except in case no backup has ever made (first ever run)
+            cursor.execute("DROP TABLE schedule_backup") # deletes existing backup table
+        except:
+            print("No existing backuptable to delete")
+        cursor.execute("CREATE TABLE schedule_backup AS SELECT * FROM masterschedule;") # creates new backup table from old schedule
+        cursor.execute("DROP TABLE masterschedule;") # deletes old master
+        cursor.execute( # creates new table
+                        '''CREATE TABLE IF NOT EXISTS masterschedule (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        studentId INT NOT NULL,
+                        lastName VARCHAR(25) NOT NULL,
+                        firstName VARCHAR(25) NOT NULL,
+                        advisoryRoom SMALLINT NOT NULL,
+                        period1 SMALLINT,
+                        period2 SMALLINT,
+                        period4 SMALLINT,
+                        period5 SMALLINT,
+                        period6 SMALLINT,
+                        period7 SMALLINT,
+                        period8 SMALLINT
+                        );\
+                        ''')
+        
+        csv_file = request.files['file'] # gets file from upload
+        csv_data = csv_file.stream.read().decode("utf-8") 
+        csv_data = StringIO(csv_data) # Convert the FileStorage object to a text mode file-like object
+        csv_reader = csv.reader(csv_data)
+        try:
+            next(csv_reader)
+        except StopIteration: # Handle the case when there are no more rows to iterate over
+            pass
+        for row in csv_reader: # iterates through and adds following rows
+            cursor.execute('''INSERT INTO masterschedule (
+                        studentId,
+                        lastName,
+                        firstName,
+                        advisoryRoom,
+                        period1,
+                        period2,
+                        period4,
+                        period5,
+                        period6,
+                        period7,
+                        period8)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', row[:11]) # Use row[:11] to exclude the extra value
+
+        # Commit the changes and close the connection
+        ## connect.commit()
+        return 'uploaded!.'
     
+
+    else:
+        return 'Error Somewhere I havent found' # if somehow its a get request instead of POST
+
+# shows current master scedule in a html table
+@app.route('/config/dbsetup/currentschedule')
+@has_permission('config')
+def dbcurrent_schedule():
+    cursor.execute("SELECT * FROM masterschedule") # sets schedule to the db 
+    rows = cursor.fetchall()
+    return render_template('currentschedule.html', rows=rows)
 
 
 if __name__ == '__main__':
