@@ -6,14 +6,25 @@
         <title>Config Home</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="">
+        <link rel="stylesheet" href="../../static/css/config.css">
     </head>
     <body>
-        <div>
-            <h1>Nav bar here</h1>
-        </div>
-        <div>
-            <h1>Status here</h1>
+        <ul>
+            <li><a href="default.asp">Text</a></li>
+            <li style="float:right" class="nohover"><a>{{username}}</a></li>
+            <li style="float:right"><a href="/logout">Log Out</a></li>
+
+        </ul>
+        <br>
+        <br>
+        <div class="container">
+
+            <div class="item">
+                <p><a href="/config/dbsetup">Upload New Schedule's And Users</a></p>
+            </div>
+
+
+
         </div>
     </body>
 </html>

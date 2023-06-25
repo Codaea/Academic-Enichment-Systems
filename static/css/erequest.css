@@ -8,11 +8,6 @@ body{
 }
 
 
-.nohover:hover{
-    color: white;
-    cursor: default;
-}
-
 ul {
   position: fixed;
   top: 0;

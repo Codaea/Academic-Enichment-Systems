@@ -113,7 +113,7 @@ def home():
             elif role == 'eUser':
                 return 'Elivated User'
             elif role == 'root':
-                return 'root user'
+                return redirect('/config')
             else:
                 return 'Error! No Role!'
             #need to add auto send to right panel based on if admin or teacher
@@ -154,12 +154,13 @@ def login():
         return render_template('login.html', error_message='')
 
 
-# Logout Route. Removes jwt sessiondata. might need to use form in future.
+# Logout Route. Removes jwt sessiondata. might need to use POST form in future.
 @app.route('/logout', methods=['GET','POST'])
 def logout():
     if session.get('token'):
         session.pop('token', None)
-        return "logged out!"
+        
+        return redirect('/login')
     else:
         return "You where never logged in!"
 
@@ -213,6 +214,8 @@ def erequests():
 
     return render_template('erequest.html', all_periods=all_periods, Fname=teacher_first_name, Room_Number=advisory_room, )
 
+
+# handles erequest form and adds to requests table in db
 @app.route('/processerequests', methods=['GET','POST'])
 @has_permission('requests')
 def proccess_erequests():
