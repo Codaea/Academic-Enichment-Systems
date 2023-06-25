@@ -28,13 +28,6 @@ ROLES = {
     'user': ['requests']
 }
 
-def db_upload_table(database,):
-    """
-    quick function for connecting, and uploading a db 
-    """
-
-    return
-
 
 def authenticate(username, password):
     """
@@ -93,6 +86,21 @@ def has_permission(permission):
             return 'Unauthorized. Please contact your network administrator if you think there has been a mistake.'
         return wrapper
     return decorator
+
+def mk_requests_db():
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+    studentId INTEGER PRIMARY KEY NOT NULL,
+    requested_rooms VARCHAR
+    
+    
+    
+    
+);
+    ''')
+
+
+
 
 #----------------------------#
 #       ALL APP ROUTES       #
@@ -192,23 +200,27 @@ def erequests():
 
     all_periods = {} # creating a dictonary for all periods
     #all_periods = {periods_# [ all rows [ columns]]}
+    if row == True:
+        for i in range(0,9):
+            query =  f"SELECT * FROM masterschedule WHERE period{i} = ?" # query increments periods by 1 every run
+            
+            try: # fixes the problem when we hit 9 of it erroring even though its kinda bs. just fixes it somehow so we print 1-8
+                cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+            except: 
+                pass
+            period = cursor.fetchall() # assigns [allrows[columns]] to period
+            
+            # gets student already requested data
+            #query = "SELECT * FROM requests WHERE studentID = ?"
+            #cursor.execute(query, ())
 
-    for i in range(0,9):
-        query =  f"SELECT * FROM masterschedule WHERE period{i} = ?" # query increments periods by 1 every run
-        
-        try: # fixes the problem when we hit 9 of it erroring even though its kinda bs. just fixes it somehow so we print 1-8
-            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-        except: 
-            pass
-        period = cursor.fetchall() # assigns [allrows[columns]] to period
-        
-        all_periods[i] = period # adds new period every loop and sets to current cursor fetch
+            #gonna need to do some table joining bullshit. tomrw problem
 
 
-        print()
+            all_periods[i] = period # adds new period every loop and sets to current cursor fetch
 
-        #query = "SELECT * FROM requests WHERE studentID = ?"
-        #cursor.execute(query, (period1))
+            x = all_periods.get(i)
+            print()
 
 
 
@@ -220,13 +232,29 @@ def erequests():
 def proccess_erequests():
     if request.method == 'POST':
         # form proccessing logic here
+
         return render_template()
+
+
+
 
 # generating and printing requests
 @app.route('/generaterequests', methods=['GET','POST'])
 @has_permission('gen requests')
 def printrequests():
+    
 
+    try:
+        cursor.execute("DROP TABLE requests") # need to add backing up old tables for attendance desk
+        cursor.execute('''
+        CREATE TABLE  requests (
+        studentId INTEGER PRIMARY KEY NOT NULL,
+        requested_rooms VARCHAR
+        );''')
+        
+    except: pass
+
+    # put a button on here that manages request dbs
     return 'Generating and Printing Page'
 
 
