@@ -83,7 +83,7 @@ def has_permission(permission):
                     role = payload['role']
                     if permission in ROLES.get(role, []):
                         return f(*args, **kwargs)
-            return 'Unauthorized. Please contact your network administrator if you think there has been a mistake.'
+            return redirect('/login')
         return wrapper
     return decorator
 
@@ -232,7 +232,32 @@ def proccess_erequests():
     if request.method == 'POST':
         # form proccessing logic here
 
-        return render_template()
+        selected_ids = request.form.getlist('selected_rows[]')
+        requesting_room = request.form.get('requesting_room')
+
+
+        for student_id in selected_ids:
+
+
+            print(student_id)
+
+            cursor.execute("SELECT * FROM requests WHERE studentId = ?", (student_id,)) # comma required on student_id, so its not treated as a tuple  ¯\_(ツ)_/¯
+            existing_row = cursor.fetchone()
+
+            
+            if existing_row:
+            # Row exists, concatenate the existing requesting room with the new value
+                existing_requested_room = existing_row[1]  # Assuming the requesting room is stored in the second column
+                new_requesting_room = f"{existing_requested_room}, {requesting_room}"
+                cursor.execute("UPDATE requests SET requested_rooms = ? WHERE studentId = ?", (new_requesting_room, student_id,))
+
+            else:
+            # Row doesn't exist, insert a new row
+                cursor.execute("INSERT INTO requests (studentId, requested_rooms) VALUES (?, ?)", (student_id, requesting_room,))
+
+        # commit changes and close
+        connect.commit()
+        return 'success!'
 
 
 

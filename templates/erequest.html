@@ -39,8 +39,9 @@
                 {% endfor %}
 
                 <br>
-                <input type="text" name="StudentIds" placeholder>
+                <input type="text" name="StudentIds" placeholder="Student Ids, Comma Seperated">
                 <br>
+                <input type="hidden" name="requesting_room" value="{{Room_Number}}">
                 <button type="submit">Submit</button>
             </form>
         </div>
