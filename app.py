@@ -189,13 +189,10 @@ def erequests():
         teacher_name = row[4]
 
         # start of mega hell cause i cant loop and create new var names
-
-        
-        
         #student_first_name = row[2]
-        ##    student_last_name = row[1]
-          #  student_id = row[0]
-
+        #student_last_name = row[1]
+        #student_id = row[0]
+        # all of these fetch periods. need to clean up at some point
         try:
             query = "SELECT * FROM masterschedule WHERE period1 = ?"
             cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
@@ -248,11 +245,12 @@ def erequests():
     return render_template('erequest.html', Fname=teacher_name, Room_Number=advisory_room, period1=period1, period2=period2, period3=period3, period4=period4, period5=period5, period6=period6, period7=period7, period8=period8)
 
 @app.route('/processerequests', methods=['GET','POST'])
+@has_permission('requests')
 def proccess_erequests():
     if request.method == 'POST':
         # form proccessing logic here
         
-        return
+        return render_template()
 
 # generating and printing requests
 @app.route('/generaterequests', methods=['GET','POST'])
@@ -280,14 +278,14 @@ def attendancereport():
 #@has_permission('config')
 def config():
 
-    return render_template('config.html')
+    return render_template('config/config.html')
 
 
 # page with links to other setup routes
 @app.route('/config/dbsetup', methods=['GET', 'POST'])
 @has_permission('config')
 def dbsetup():
-    return render_template('dbsetup.html')
+    return render_template('config/dbsetup.html')
 
 
 # uploading the users table
@@ -410,7 +408,7 @@ def dbcurrent_schedule():
     cursor.execute("SELECT * FROM masterschedule") # sets schedule to the db 
     rows = cursor.fetchall()
     connect.close()
-    return render_template('currentschedule.html', rows=rows)
+    return render_template('config/currentschedule.html', rows=rows)
 
 
 if __name__ == '__main__':
