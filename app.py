@@ -35,6 +35,7 @@ def db_upload_table(database,):
 
     return
 
+
 def authenticate(username, password):
     """
     Authenticates the user against the SQLite database.
@@ -93,7 +94,9 @@ def has_permission(permission):
         return wrapper
     return decorator
 
-# ALL app routes
+#----------------------------#
+#       ALL APP ROUTES       #
+#----------------------------#
 
 #home route
 @app.route('/', methods=['GET'])
@@ -108,7 +111,7 @@ def home():
             #
             role = decode_jwt(token=token).get('role')# decodes token and gets key 'role' from token json
             if role == 'user':
-                return 'user'
+                return redirect('erequests')
             elif role == 'attendance':
                 return 'attendance'
             elif role == 'admin':
@@ -169,24 +172,87 @@ def logout():
 
 # teacher requesting landing page
 @app.route('/erequests')
-@has_permission('write requests')
+@has_permission('requests')
 def erequests():
 
     token = session.get('token') # gets token 
+
     username = decode_jwt(token=token).get('username') # decodes token and gets username
 
-    query = "SELECT * FROM users WHERE username=?" # creates query with palceholder
-    cursor.execute(query, (username)) # adds username to query and runs query
+    query = "SELECT * FROM users WHERE username = ?" # prevents sql injection according to chatgpt
+    cursor.execute(query, (username,)) # finds username in userdb for templates
 
-    userinfo = cursor.fetchone() # fetches query results and makes into object userinfo
-    connect.close()
-    print(userinfo)
+    row = cursor.fetchone() # fetches query results and makes into object userinfo
+    if row:
+        # put data you want from the row here (SUBTRACT ONE WE START AT 0)
+        advisory_room = row[5]
+        teacher_name = row[4]
 
+        # start of mega hell cause i cant loop and create new var names
 
+        
+        
+        #student_first_name = row[2]
+        ##    student_last_name = row[1]
+          #  student_id = row[0]
 
+        try:
+            query = "SELECT * FROM masterschedule WHERE period1 = ?"
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+            period1 = cursor.fetchall()
+        except:
+            print("No Period!")
+        try:
+            query = "SELECT * FROM masterschedule WHERE period2 = ?"
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+            period2 = cursor.fetchall()
+        except:
+            print("No Period!")
+        try:
+            query = "SELECT * FROM masterschedule WHERE period3 = ?"
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+            period3 = cursor.fetchall()
+        except:
+            print("No Period!")
+        try:
+            query = "SELECT * FROM masterschedule WHERE period4 = ?"
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+            period4 = cursor.fetchall()
+        except:
+            print("No Period!")
+        try:
+            query = "SELECT * FROM masterschedule WHERE period5 = ?"
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+            period5 = cursor.fetchall()
+        except:
+            print("No Period!")
+        try:
+            query = "SELECT * FROM masterschedule WHERE period6 = ?"
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+            period6 = cursor.fetchall()
+        except:
+            print("No Period!")
+        try:
+            query = "SELECT * FROM masterschedule WHERE period7 = ?"
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+            period7 = cursor.fetchall()
+        except:
+            print("No Period!")
+        try:
+            query = "SELECT * FROM masterschedule WHERE period8 = ?"
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+            period8 = cursor.fetchall()
+        except:
+            print("No Period!")
 
-    return 'Teacher , Educator Requests'
+    return render_template('erequest.html', Fname=teacher_name, Room_Number=advisory_room, period1=period1, period2=period2, period3=period3, period4=period4, period5=period5, period6=period6, period7=period7, period8=period8)
 
+@app.route('/processerequests', methods=['GET','POST'])
+def proccess_erequests():
+    if request.method == 'POST':
+        # form proccessing logic here
+        
+        return
 
 # generating and printing requests
 @app.route('/generaterequests', methods=['GET','POST'])
