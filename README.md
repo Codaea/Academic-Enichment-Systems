@@ -5,13 +5,13 @@
 
 ## Permissions
 
-3 levels
+4 levels
 
 4 root -database access and adjust all other permissions 
 
 3 Admin - allows printing of request forms along with requesting whoever to who along with removal of requests. 
 
-1.5 attendace 
+2 attendace 
 
 1 Teacher - protected, allows requesting and unrequesting students along with always request
 
@@ -20,13 +20,14 @@
 
 # All Pages
 
-    Homepage?
-    Login
-    Teacher Requests
+    Homepage? No
+    Login Done
+    Teacher Requests Done
+    Teacher Request Submitting Done
     generate and print Requests
     Print/view attednaceReports
     Print/view teacherreports
-    admin panel
+    admin panel Done
 
 
 ## To Do 
