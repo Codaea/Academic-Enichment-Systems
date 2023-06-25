@@ -182,11 +182,18 @@ def erequests():
     query = "SELECT * FROM users WHERE username = ?" # prevents sql injection according to chatgpt
     cursor.execute(query, (username,)) # finds username in userdb for templates
 
+    
+    
     row = cursor.fetchone() # fetches query results and makes into object userinfo
+    advisory_room = row[5]
+    teacher_first_name = row[5]
+    teacher_last_name = row[4]
+
+    teacher_full_name = teacher_first_name + ' ' + teacher_last_name
+
     if row:
         # put data you want from the row here (SUBTRACT ONE WE START AT 0)
-        advisory_room = row[5]
-        teacher_name = row[4]
+        
 
         # start of mega hell cause i cant loop and create new var names
         #student_first_name = row[2]
@@ -242,7 +249,7 @@ def erequests():
         except:
             print("No Period!")
 
-    return render_template('erequest.html', Fname=teacher_name, Room_Number=advisory_room, period1=period1, period2=period2, period3=period3, period4=period4, period5=period5, period6=period6, period7=period7, period8=period8)
+    return render_template('erequest.html', Fname=teacher_full_name, Room_Number=advisory_room, period1=period1, period2=period2, period3=period3, period4=period4, period5=period5, period6=period6, period7=period7, period8=period8)
 
 @app.route('/processerequests', methods=['GET','POST'])
 @has_permission('requests')

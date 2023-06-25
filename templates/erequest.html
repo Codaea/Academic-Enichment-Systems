@@ -6,21 +6,25 @@
         <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="">
+        <link rel="stylesheet" href="../static/css/erequest.css">
     </head>
     <body>
-        <div>
-        <h1>Welcome {{ Fname }}!</h1>
-        <h3>Choose Who To request!</h3>
-        <p>Room {{ Room_Number }}</p>
-        </div>
-        <div>
-        <form method="POST" action="/processerequests>
+        <ul>
+            <li><a href="default.asp">Home</a></li>
+            <li><a href="news.asp">Requests</a></li>
+            <li><a href="contact.asp">Reports</a></li>
+            <li style="float:right"  ><a href="/logout">Log Out</a></li>
+            <li style="float:right" class="nohover" ><a>{{teacher_name}}</a></li>
+            
+          </ul>
+
+        <div class="form">
+        <form method="POST" action="/processerequests">
             <p>Period 1</p>
             {% for row in period1 %}
                 <label>
-                    
-                    <input type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
+                    <input class="container" type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
+
                     {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
                 </label>
                 <br>
@@ -95,7 +99,9 @@
                 </label>
                 <br>
             {% endfor %}
-            <input type="text" name="inputStudentIds">
+            <br>
+            <input type="text" name="StudentIds" placeholder="">
+            <br>
             <button type="submit">Submit</button>
         </form>
     </div>
