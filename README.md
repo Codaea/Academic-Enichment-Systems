@@ -31,6 +31,16 @@
 
 ## To Do 
 
+## 4 diffrent possiblitys
+
+change later??
+- they are requeted by others and you red 
+- they have already been requested orange
+- just you them yellow
+- no one has requested green
+
+
+
 Intergate Stats at some point
 
 Real Life Scanning Part

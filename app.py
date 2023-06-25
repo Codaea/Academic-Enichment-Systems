@@ -87,20 +87,6 @@ def has_permission(permission):
         return wrapper
     return decorator
 
-def mk_requests_db():
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-    studentId INTEGER PRIMARY KEY NOT NULL,
-    requested_rooms VARCHAR
-    
-    
-    
-    
-);
-    ''')
-
-
-
 
 #----------------------------#
 #       ALL APP ROUTES       #
@@ -216,6 +202,7 @@ def erequests():
         except: pass
 
         period = cursor.fetchall() # assigns [allrows[columns]] to period
+        
 
         all_periods[i] = period # adds new period to dict every loop and sets to current cursor fetch (more lists of lists)
         # all_periods = {periods_# [ all rows [ columns]]}

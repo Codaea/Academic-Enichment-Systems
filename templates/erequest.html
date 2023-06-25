@@ -29,8 +29,15 @@
 
                     {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
                     {% if row[12] %}
-                    <span class="dot_red" title="{{row[12]}}"></span>
+                        {% if Room_Number|string == row[12] %}
+                            <span class="dot_yellow" title="{{row[12]}}"></span>
+                        {% elif Room_Number|string in row[12] %}
+                            <span class="dot_red" title="{{row[12]}}"></span>
+                        {% else %}
+                            <span class="dot_orange" title="{{row[12]}}"></span>
+                        {% endif %}
                     {% else %}
+                    
                     <span  class="dot_green"></span>
                     {% endif %}
                 </label>
