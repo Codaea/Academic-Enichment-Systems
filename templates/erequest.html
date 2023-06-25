@@ -28,10 +28,10 @@
                         name="selected_rows[]" value="{{ row[0] }}">
 
                     {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
-                    {% if row[3] %}
-                    <span class="dot_green"></span>
+                    {% if row[12] %}
+                    <span class="dot_red" title="{{row[12]}}"></span>
                     {% else %}
-                    <span class="dot_red"></span>
+                    <span  class="dot_green"></span>
                     {% endif %}
                 </label>
                 <br>

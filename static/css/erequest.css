@@ -58,3 +58,42 @@ input[type=text] {
 input[type=text]:focus {
     width: 100%;
   }
+
+
+.dot_green {
+  height: 15px;
+  width: 15px;
+  background-color: #00a800;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot_red {
+  height: 15px;
+  width: 15px;
+  background-color: #ff0000;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  left: 105%;
+}

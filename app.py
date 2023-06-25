@@ -196,31 +196,30 @@ def erequests():
     advisory_room = row[5]
     teacher_first_name = row[5]
     teacher_last_name = row[4]
-
-
+    
     all_periods = {} # creating a dictonary for all periods
-    #all_periods = {periods_# [ all rows [ columns]]}
-    if row == True:
-        for i in range(0,9):
-            query =  f"SELECT * FROM masterschedule WHERE period{i} = ?" # query increments periods by 1 every run
-            
-            try: # fixes the problem when we hit 9 of it erroring even though its kinda bs. just fixes it somehow so we print 1-8
-                cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-            except: 
-                pass
-            period = cursor.fetchall() # assigns [allrows[columns]] to period
-            
-            # gets student already requested data
-            #query = "SELECT * FROM requests WHERE studentID = ?"
-            #cursor.execute(query, ())
+    # all_periods = {periods_# [ all rows [ columns]]}
+    for i in range(0,9):
+        
+        query = f'''
+        SELECT masterschedule.*, (
+        SELECT requests.requested_rooms
+        FROM requests
+        WHERE requests.studentId = masterschedule.studentId
+        ) AS matched_value
+        FROM masterschedule
+        WHERE masterschedule.period{i} = ?;
+        '''# query increments periods by 1 every run with 'i'
 
-            #gonna need to do some table joining bullshit. tomrw problem
+        try: 
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+        except: pass
 
+        period = cursor.fetchall() # assigns [allrows[columns]] to period
 
-            all_periods[i] = period # adds new period every loop and sets to current cursor fetch
+        all_periods[i] = period # adds new period to dict every loop and sets to current cursor fetch (more lists of lists)
+        # all_periods = {periods_# [ all rows [ columns]]}
 
-            x = all_periods.get(i)
-            print()
 
 
 
