@@ -5,7 +5,9 @@ import jwt # auth
 from datetime import datetime, timedelta # sets jwt expiry
 import json # auth checking
 import csv # for db uploading
-from io import StringIO # done for csv conversion
+from io import StringIO # done for csv conversion to sqlite
+import time # for waiting before rerouting
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
@@ -41,7 +43,6 @@ def authenticate(username, password):
     query = "SELECT * FROM users WHERE username=? AND password=?"
     cursor.execute(query, (username, password))
     user = cursor.fetchone()
-
     if user:
         return user['role']
     else:
@@ -170,6 +171,20 @@ def logout():
 @app.route('/erequests')
 @has_permission('write requests')
 def erequests():
+
+    token = session.get('token') # gets token 
+    username = decode_jwt(token=token).get('username') # decodes token and gets username
+
+    query = "SELECT * FROM users WHERE username=?" # creates query with palceholder
+    cursor.execute(query, (username)) # adds username to query and runs query
+
+    userinfo = cursor.fetchone() # fetches query results and makes into object userinfo
+    connect.close()
+    print(userinfo)
+
+
+
+
     return 'Teacher , Educator Requests'
 
 
@@ -189,12 +204,19 @@ def attendancereport():
     return 'attendace reports for tina in the office!'
 
 
+#----------------------------#
+# CONFIGURATION ROUTES BELOW #
+#----------------------------#
+
+
 # homepage for all setup related tasks. user might have access to one, but not all
 @app.route('/config', methods=['GET', 'POST'])
-@has_permission('config')
+#@has_permission('config')
 def config():
 
     return render_template('config.html')
+
+
 # page with links to other setup routes
 @app.route('/config/dbsetup', methods=['GET', 'POST'])
 @has_permission('config')
@@ -212,42 +234,43 @@ def dbupload_users():
         except:
             print("No user Table to drop!")
         cursor.execute( # creates new table
-                        '''CREATE TABLE IF NOT EXISTS users (
+                        '''CREATE TABLE users (
                         id INTEGER,
-                        username VARCHAR NOT NULL,
-                        password VARCHAR NOT NULL,
-                        last_name VARCHAR NOT NULL,
-                        first_name VARCHAR NOT NULL,
-                        advisory_room SMALLINT NOT NULL,
-                        user_email VARCHAR NOT NULL,
-                        role VARCHAR NOT NULL
+                        username VARCHAR,
+                        password VARCHAR,
+                        last_name VARCHAR,
+                        first_name VARCHAR,
+                        advisory_room SMALLINT,
+                        user_email VARCHAR,
+                        prefix VARCHAR,
+                        role VARCHAR
                         );
                         ''')
         
         csv_file = request.files['file'] # gets file from upload
+        print(csv_file) # test1 
         csv_data = csv_file.stream.read().decode("utf-8") 
         csv_data = StringIO(csv_data) # Convert the FileStorage object to a text mode file-like object
         csv_reader = csv.reader(csv_data)
+        print(csv_reader)
         try:
             next(csv_reader)
         except StopIteration: # Handle the case when there are no more rows to iterate over
             pass
-        #try:
+
         for row in csv_reader: # iterates through and adds following rows
-            cursor.execute('''INSERT INTO masterschedule (
-                        studentId,
-                        lastName,
-                        firstName,
-                        advisoryRoom,
-                        period1,
-                        period2,
-                        period3,
-                        period4,
-                        period5,
-                        period6,
-                        period7,
-                        period8)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', row)
+            cursor.execute('''INSERT INTO users (
+                            id,
+                            username,
+                            password,
+                            last_name, 
+                            first_name,
+                            advisory_room,
+                            user_email,
+                            prefix,
+                            role
+                            )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', row)
         connect.commit()# Commit the changes and close the connection
         return 'uploaded!'
     else:
@@ -320,6 +343,7 @@ def dbupload_schedule():
 def dbcurrent_schedule():
     cursor.execute("SELECT * FROM masterschedule") # sets schedule to the db 
     rows = cursor.fetchall()
+    connect.close()
     return render_template('currentschedule.html', rows=rows)
 
 
