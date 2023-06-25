@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title></title>
-        <meta name="description" content="">
+        <meta name="description" content>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="../static/css/erequest.css">
     </head>
@@ -13,97 +13,37 @@
             <li><a href="default.asp">Home</a></li>
             <li><a href="news.asp">Requests</a></li>
             <li><a href="contact.asp">Reports</a></li>
-            <li style="float:right"  ><a href="/logout">Log Out</a></li>
-            <li style="float:right" class="nohover" ><a>{{teacher_name}}</a></li>
-            
-          </ul>
+            <li style="float:right"><a href="/logout">Log Out</a></li>
+            <li style="float:right" class="nohover"><a>{{teacher_name}}</a></li>
+
+        </ul>
 
         <div class="form">
-        <form method="POST" action="/processerequests">
-            <p>Period 1</p>
-            {% for row in period1 %}
+            <form method="POST" action="/processerequests">
+                
+                {% for key, value in all_periods.items() %}
+                <p>Period {{ key }}</p>
+                {% for row in value %}
                 <label>
-                    <input class="container" type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
+                    <input class="container" type="checkbox"
+                        name="selected_rows[]" value="{{ row[0] }}">
 
                     {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
+                    {% if row[3] %}
+                    <span class="dot_green"></span>
+                    {% else %}
+                    <span class="dot_red"></span>
+                    {% endif %}
                 </label>
                 <br>
-            {% endfor %}
-            
-            <p>Period 2</p>
-            {% for row in period2 %}
-                <label>
-                    
-                    <input type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
-                    {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
-                </label>
+                {% endfor %}
+                {% endfor %}
+
                 <br>
-            {% endfor %}
-            
-            <p>Period 3</p>
-            {% for row in period3 %}
-                <label>
-                    
-                    <input type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
-                    {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
-                </label>
+                <input type="text" name="StudentIds" placeholder>
                 <br>
-            {% endfor %}
-            
-            <p>Period 4</p>
-            {% for row in period4 %}
-                <label>
-                    
-                    <input type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
-                    {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
-                </label>
-                <br>
-            {% endfor %}
-            
-            <p>Period 5</p>
-            {% for row in period5 %}
-                <label>
-                    
-                    <input type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
-                    {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
-                </label>
-                <br>
-            {% endfor %}
-            
-            <p>Period 6</p>
-            {% for row in period6 %}
-                <label>
-                    
-                    <input type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
-                    {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
-                </label>
-                <br>
-            {% endfor %}
-            
-            <p>Period 7</p>
-            {% for row in period7 %}
-                <label>
-                    
-                    <input type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
-                    {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
-                </label>
-                <br>
-            {% endfor %}
-            
-            <p>Period 8</p>
-            {% for row in period8 %}
-                <label>
-                    
-                    <input type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
-                    {{ row[2] }} {{ row[1] }} (ID: {{ row[0] }})
-                </label>
-                <br>
-            {% endfor %}
-            <br>
-            <input type="text" name="StudentIds" placeholder="">
-            <br>
-            <button type="submit">Submit</button>
-        </form>
-    </div>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
     </body>
 </html>

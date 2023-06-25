@@ -189,74 +189,37 @@ def erequests():
     teacher_first_name = row[5]
     teacher_last_name = row[4]
 
-    teacher_full_name = teacher_first_name + ' ' + teacher_last_name
 
-    if row:
-        # put data you want from the row here (SUBTRACT ONE WE START AT 0)
+    all_periods = {} # creating a dictonary for all periods
+    #all_periods = {periods_# [ all rows [ columns]]}
+
+    for i in range(0,9):
+        query =  f"SELECT * FROM masterschedule WHERE period{i} = ?" # query increments periods by 1 every run
         
+        try: # fixes the problem when we hit 9 of it erroring even though its kinda bs. just fixes it somehow so we print 1-8
+            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
+        except: 
+            pass
+        period = cursor.fetchall() # assigns [allrows[columns]] to period
+        
+        all_periods[i] = period # adds new period every loop and sets to current cursor fetch
 
-        # start of mega hell cause i cant loop and create new var names
-        #student_first_name = row[2]
-        #student_last_name = row[1]
-        #student_id = row[0]
-        # all of these fetch periods. need to clean up at some point
-        try:
-            query = "SELECT * FROM masterschedule WHERE period1 = ?"
-            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-            period1 = cursor.fetchall()
-        except:
-            print("No Period!")
-        try:
-            query = "SELECT * FROM masterschedule WHERE period2 = ?"
-            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-            period2 = cursor.fetchall()
-        except:
-            print("No Period!")
-        try:
-            query = "SELECT * FROM masterschedule WHERE period3 = ?"
-            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-            period3 = cursor.fetchall()
-        except:
-            print("No Period!")
-        try:
-            query = "SELECT * FROM masterschedule WHERE period4 = ?"
-            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-            period4 = cursor.fetchall()
-        except:
-            print("No Period!")
-        try:
-            query = "SELECT * FROM masterschedule WHERE period5 = ?"
-            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-            period5 = cursor.fetchall()
-        except:
-            print("No Period!")
-        try:
-            query = "SELECT * FROM masterschedule WHERE period6 = ?"
-            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-            period6 = cursor.fetchall()
-        except:
-            print("No Period!")
-        try:
-            query = "SELECT * FROM masterschedule WHERE period7 = ?"
-            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-            period7 = cursor.fetchall()
-        except:
-            print("No Period!")
-        try:
-            query = "SELECT * FROM masterschedule WHERE period8 = ?"
-            cursor.execute(query, (advisory_room,)) # would need to change if we shift away from one room link
-            period8 = cursor.fetchall()
-        except:
-            print("No Period!")
 
-    return render_template('erequest.html', Fname=teacher_full_name, Room_Number=advisory_room, period1=period1, period2=period2, period3=period3, period4=period4, period5=period5, period6=period6, period7=period7, period8=period8)
+        print()
+
+        #query = "SELECT * FROM requests WHERE studentID = ?"
+        #cursor.execute(query, (period1))
+
+
+
+
+    return render_template('erequest.html', all_periods=all_periods, Fname=teacher_first_name, Room_Number=advisory_room, )
 
 @app.route('/processerequests', methods=['GET','POST'])
 @has_permission('requests')
 def proccess_erequests():
     if request.method == 'POST':
         # form proccessing logic here
-        
         return render_template()
 
 # generating and printing requests
