@@ -1,6 +1,5 @@
 venv/
-
-
+.vscode/
 # everything past here is GitHub Generated
 
 # Byte-compiled / optimized / DLL files

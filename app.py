@@ -256,8 +256,22 @@ def proccess_erequests():
 @app.route('/generaterequests', methods=['GET','POST'])
 @has_permission('gen requests')
 def printrequests():
-    
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    """
     try:
         cursor.execute("DROP TABLE requests") # need to add backing up old tables for attendance desk
         cursor.execute('''
@@ -267,7 +281,7 @@ def printrequests():
         );''')
         
     except: pass
-
+    """
     # put a button on here that manages request dbs
     return 'Generating and Printing Page'
 
