@@ -119,7 +119,7 @@ def home():
             elif role == 'admin':
                 return 'admin'
             elif role == 'eUser':
-                return 'Elivated User'
+                return redirect('/apanel')
             elif role == 'root':
                 return redirect('/config')
             else:
@@ -257,13 +257,14 @@ def admin_panel():
 @has_permission('gen requests')
 def printrequests():
     
-    # cleanup (commented out for tests) 
+    # precleaning
 
     # for first run incase no table
     try:
-        cursor.execute("SELECT id FROM genrequests") # will error if no table
-        
-    except: # does cleanup on old tables and backs it up to lastgenrequests 
+        cursor.execute("DROP TABLE genrequests") # deletes genrequest for new iteration and will error if doesnt exist
+    except:
+        print('No genrequests table to drop! making new table..')
+    finally: # makes new genrequests table
         query = '''
         CREATE TABLE genrequests (
         id INTEGER PRIMARY KEY,
@@ -277,33 +278,9 @@ def printrequests():
         base64qr BLOB
         );'''
         
-        cursor.execute(query) # creates genrequest table
+        cursor.execute(query) # creates genrequest table 
+        print('New Table!')
 
-
-    # creates backup genrequests and makes a new one
-    try: # incase theres no backup
-        cursor.execute("DROP TABLE lastgenrequests") # deletes old backup
-    except: pass
-    cursor.execute("CREATE TABLE lastgenrequests AS SELECT * FROM genrequests;") # backs up table if it exists
-    cursor.execute("DROP TABLE genrequests") # deletes genrequest for new iteration
-    
-    # new genrequest table stuff
-
-    query = '''
-    CREATE TABLE genrequests (
-    id INTEGER PRIMARY KEY,
-    studentID INT,
-    requested_room TEXT,
-    advisory_room TEXT,
-    firstName TEXT,
-    lastName TEXT,
-    prefix TEXT,
-    last_name TEXT,
-    base64qr BLOB
-    );'''
-    
-    cursor.execute(query) # creates genrequest table 
-    
     query = '''
     INSERT INTO genrequests (studentID, requested_room, advisory_room, firstName, lastName, prefix, last_name)
     SELECT r.studentID, r.requested_room, u.advisory_room, m.firstName, m.lastName, u.prefix, u.last_name
@@ -334,7 +311,7 @@ def printrequests():
         qr_image.save(byte_stream,) # Converts into bytes
         qr_image_data = byte_stream.getvalue() # gets the conversion
 
-        base64_image = base64.b64encode(qr_image_data).decode('utf-8') # converts bytes to string
+        base64_image = base64.b64encode(qr_image_data).decode('utf-8') # converts bytes to pngstring
         
         #print(base64_image)
 
@@ -349,9 +326,9 @@ def printrequests():
 
     """
     # commeted out for my sanity
-    # Drops old requests table and makes a new one 
-    
-    try:# drops  requests and makes new requests tables for next iteration
+
+    # drops 'requests' and makes new 'requests' tables for next iteration
+    try:
         cursor.execute("DROP TABLE requests") 
         cursor.execute('''
         CREATE TABLE  requests (
@@ -361,10 +338,11 @@ def printrequests():
         
     except: pass
     """
-
+    # End of Precleaning
     
     # MAIN CODE
 
+    # ordering table before pdf conversion
     query = '''
     SELECT *
     FROM genrequests
