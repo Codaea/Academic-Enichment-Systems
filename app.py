@@ -335,7 +335,8 @@ def printrequests():
         qr_image_data = byte_stream.getvalue() # gets the conversion
 
         base64_image = base64.b64encode(qr_image_data).decode('utf-8') # converts bytes to string
-        print(qr_image_data)
+        
+        #print(base64_image)
 
         # adds base64string to sql table
 
