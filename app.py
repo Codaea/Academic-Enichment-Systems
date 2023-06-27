@@ -5,10 +5,11 @@ import jwt # auth
 from datetime import datetime, timedelta # sets jwt expiry
 import json # auth checking
 import csv # for db uploading
-from io import StringIO # done for csv conversion to sqlite
+from io import StringIO, BytesIO # done for csv conversion to sqlite, and qr code to base64
 import time # for waiting before rerouting
 import pdfkit # for making pdfs from html
-
+import qrcode # for scanning pages
+import base64 # directly passing in images to html (for qr codes)
 app = Flask(__name__)
 
 
@@ -257,16 +258,37 @@ def admin_panel():
 def printrequests():
     
     # cleanup (commented out for tests) 
-    
-    cursor.execute("SELECT id FROM genrequests")  # sees if table exists
-    result = cursor.fetchone
-    if result: # does cleanup on old tables and backs it up to lastgenrequests 
-        cursor.execute("CREATE TABLE lastgenrequests AS SELECT * FROM genrequests;") # backs up table if it exists
-        cursor.execute("DROP TABLE genrequests") # deletes it 
 
+    # for first run incase no table
+    try:
+        cursor.execute("SELECT id FROM genrequests") # will error if no table
         
-    else: pass # incase its the first ever run
+    except: # does cleanup on old tables and backs it up to lastgenrequests 
+        query = '''
+        CREATE TABLE genrequests (
+        id INTEGER PRIMARY KEY,
+        studentID INT,
+        requested_room TEXT,
+        advisory_room TEXT,
+        firstName TEXT,
+        lastName TEXT,
+        prefix TEXT,
+        last_name TEXT,
+        base64qr BLOB
+        );'''
+        
+        cursor.execute(query) # creates genrequest table
+
+
+    # creates backup genrequests and makes a new one
+    try: # incase theres no backup
+        cursor.execute("DROP TABLE lastgenrequests") # deletes old backup
+    except: pass
+    cursor.execute("CREATE TABLE lastgenrequests AS SELECT * FROM genrequests;") # backs up table if it exists
+    cursor.execute("DROP TABLE genrequests") # deletes genrequest for new iteration
     
+    # new genrequest table stuff
+
     query = '''
     CREATE TABLE genrequests (
     id INTEGER PRIMARY KEY,
@@ -276,9 +298,13 @@ def printrequests():
     firstName TEXT,
     lastName TEXT,
     prefix TEXT,
-    last_name TEXT
-    );
-
+    last_name TEXT,
+    base64qr BLOB
+    );'''
+    
+    cursor.execute(query) # creates genrequest table 
+    
+    query = '''
     INSERT INTO genrequests (studentID, requested_room, advisory_room, firstName, lastName, prefix, last_name)
     SELECT r.studentID, r.requested_room, u.advisory_room, m.firstName, m.lastName, u.prefix, u.last_name
     FROM requests r
@@ -286,8 +312,42 @@ def printrequests():
     JOIN users u ON r.requested_room = u.advisory_room;
     ''' # creates table and inserts new data into it
 
-    cursor.execute(query) # creates genrequest table 
+    cursor.execute(query) # Inserts all normal values in genrequests
+    
+    # QR code generation
 
+    cursor.execute("SELECT * FROM genrequests")
+
+    rows = cursor.fetchall()
+
+    for row in rows: # makes qr code per row
+        id_value = row[0] # id row here
+        
+        # creating qr code
+        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=10, border=4)
+        qr.add_data(str(id_value))
+        qr.make(fit=True)
+        qr_image = qr.make_image(fill_color="black", back_color="white") # actually makes the qr code and assigns it to qr_image
+
+        # Convert the qrcode to a base64-encoded string
+        byte_stream = BytesIO()
+        qr_image.save(byte_stream,) # Converts into bytes
+        qr_image_data = byte_stream.getvalue() # gets the conversion
+
+        base64_image = base64.b64encode(qr_image_data).decode('utf-8') # converts bytes to string
+        print(qr_image_data)
+
+        # adds base64string to sql table
+
+        query = "UPDATE genrequests SET base64qr = ? WHERE id = ?"
+
+        cursor.execute(query, (base64_image, id_value))
+    
+    connect.commit()
+
+
+    """
+    # commeted out for my sanity
     # Drops old requests table and makes a new one 
     
     try:# drops  requests and makes new requests tables for next iteration
@@ -299,8 +359,10 @@ def printrequests():
         );''')
         
     except: pass
+    """
 
-    # main part
+    
+    # MAIN CODE
 
     query = '''
     SELECT *
@@ -314,11 +376,17 @@ def printrequests():
 
     rows = cursor.fetchall() # gets selection to pass into render_template
     # [row[column]]
-    # columns start at 0. id, StudentID, requestedroom, advisoryroom, firstName, lastName, prefix, teachername
-    print(rows)
+    # columns start at 0. id, StudentID, requestedroom, advisoryroom, firstName, lastName, prefix, teachername, 8
+
+    
+        
 
 
-    rendered = render_template('requestspdftemplate.html', rows=rows)
+    # rendering pdf
+    rendered = render_template('requestspdftemplate.html', rows=rows,)
+
+    # return rendered # remove this for when wanting pdf
+
     try:
     # Generate the PDF from the HTML content
         pdf = pdfkit.from_string(rendered, False, configuration=pdfkit_config)
