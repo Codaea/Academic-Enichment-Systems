@@ -7,10 +7,17 @@ import json # auth checking
 import csv # for db uploading
 from io import StringIO # done for csv conversion to sqlite
 import time # for waiting before rerouting
-
+import pdfkit # for making pdfs from html
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
+
+
+app.config['SECRET_KEY'] = 'your-secret-key' # make something secure, ive been using this for a while now
+#https://wkhtmltopdf.org/index.html
+pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe') # /path/to/wkhtmltopdf 
+
+
+
 
 # SQLite database connection
 connect = sqlite3.connect('database.db', check_same_thread=False)
@@ -21,10 +28,10 @@ cursor = connect.cursor()
 
 # User roles and their corresponding permissions
 ROLES = {
-    'root': ['read requests', 'write requests', 'gen requests', 'gen reports', 'read reports', 'config'],
-    'admin': ['read requests', 'write requests', 'gen requests', 'gen reports', 'read reports','edit schedule'],
-    'eUser': ['read requests', 'write requests', 'gen requests', 'gen reports', 'read reports'],
-    'attendance': ['read reports', 'gen reports'],
+    'root': ['read requests', 'write requests', 'gen requests', 'reports', 'config'],
+    'admin': ['read requests', 'write requests', 'gen requests', 'reports','edit schedule'],
+    'eUser': ['read requests', 'write requests', 'gen requests', 'reports'],
+    'attendance': ['reports'],
     'user': ['requests']
 }
 
@@ -190,7 +197,7 @@ def erequests():
         
         query = f'''
         SELECT masterschedule.*, (
-        SELECT requests.requested_rooms
+        SELECT requests.requested_room
         FROM requests
         WHERE requests.studentId = masterschedule.studentId
         ) AS matched_value
@@ -203,7 +210,7 @@ def erequests():
         except: pass
 
         period = cursor.fetchall() # assigns [allrows[columns]] to period
-        
+        print(period)
 
         all_periods[i] = period # adds new period to dict every loop and sets to current cursor fetch (more lists of lists)
         # all_periods = {periods_# [ all rows [ columns]]}
@@ -225,64 +232,116 @@ def proccess_erequests():
         selected_ids = request.form.getlist('selected_rows[]')
         requesting_room = request.form.get('requesting_room')
 
-
         for student_id in selected_ids:
+            print(student_id)    
 
-
-            print(student_id)
-
-            cursor.execute("SELECT * FROM requests WHERE studentId = ?", (student_id,)) # comma required on student_id, so its not treated as a tuple  ¯\_(ツ)_/¯
-            existing_row = cursor.fetchone()
-
-            
-            if existing_row:
-            # Row exists, concatenate the existing requesting room with the new value
-                existing_requested_room = existing_row[1]  # Assuming the requesting room is stored in the second column
-                new_requesting_room = f"{existing_requested_room}, {requesting_room}"
-                cursor.execute("UPDATE requests SET requested_rooms = ? WHERE studentId = ?", (new_requesting_room, student_id,))
-
-            else:
-            # Row doesn't exist, insert a new row
-                cursor.execute("INSERT INTO requests (studentId, requested_rooms) VALUES (?, ?)", (student_id, requesting_room,))
+            cursor.execute("INSERT INTO requests (studentId, requested_room) VALUES (?, ?)", (student_id, requesting_room,))
 
         # commit changes and close
         connect.commit()
         return 'success!'
 
 
+# admin control interface for Cwells
+@app.route('/apanel')
+@has_permission('gen requests')
+def admin_panel():
+
+    # put a button on here that manages request dbs
+    return render_template('apanel.html')
 
 
 # generating and printing requests
-@app.route('/generaterequests', methods=['GET','POST'])
+@app.route('/apanel/generaterequestspdf', methods=['GET','POST'])
 @has_permission('gen requests')
 def printrequests():
+    
+    # cleanup (commented out for tests) 
+    
+    cursor.execute("SELECT id FROM genrequests")  # sees if table exists
+    result = cursor.fetchone
+    if result: # does cleanup on old tables and backs it up to lastgenrequests 
+        cursor.execute("CREATE TABLE lastgenrequests AS SELECT * FROM genrequests;") # backs up table if it exists
+        cursor.execute("DROP TABLE genrequests") # deletes it 
+
+        
+    else: pass # incase its the first ever run
+    
+    query = '''
+    CREATE TABLE genrequests (
+    id INTEGER PRIMARY KEY,
+    studentID INT,
+    requested_room TEXT,
+    advisory_room TEXT,
+    firstName TEXT,
+    lastName TEXT,
+    prefix TEXT,
+    last_name TEXT
+    );
+
+    INSERT INTO genrequests (studentID, requested_room, advisory_room, firstName, lastName, prefix, last_name)
+    SELECT r.studentID, r.requested_room, u.advisory_room, m.firstName, m.lastName, u.prefix, u.last_name
+    FROM requests r
+    JOIN masterschedule m ON r.studentID = m.studentID
+    JOIN users u ON r.requested_room = u.advisory_room;
+    ''' # creates table and inserts new data into it
+
+    cursor.execute(query) # creates genrequest table 
+
+    # Drops old requests table and makes a new one 
+    
+    try:# drops  requests and makes new requests tables for next iteration
+        cursor.execute("DROP TABLE requests") 
+        cursor.execute('''
+        CREATE TABLE  requests (
+        studentId INTEGER NOT NULL,
+        requested_room VARCHAR
+        );''')
+        
+    except: pass
+
+    # main part
+
+    query = '''
+    SELECT *
+    FROM genrequests
+    ORDER BY advisory_room ASC,
+    lastName DESC;
+        
+    ''' 
+
+    cursor.execute(query) # selection for html template input
+
+    rows = cursor.fetchall() # gets selection to pass into render_template
+    # [row[column]]
+    # columns start at 0. id, StudentID, requestedroom, advisoryroom, firstName, lastName, prefix, teachername
+    print(rows)
 
 
+    rendered = render_template('requestspdftemplate.html', rows=rows)
+    try:
+    # Generate the PDF from the HTML content
+        pdf = pdfkit.from_string(rendered, False, configuration=pdfkit_config)
 
+    except IOError as e: # clean this up future me
+        print("wkhtmltopdf reported an error:")
+        print(e)
 
-
-
-
-
-
-
-
+    # Return the PDF as a response
+    response = app.make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=Requests.pdf'
+    return response
 
 
 
     
-    """
-    try:
-        cursor.execute("DROP TABLE requests") # need to add backing up old tables for attendance desk
-        cursor.execute('''
-        CREATE TABLE  requests (
-        studentId INTEGER PRIMARY KEY NOT NULL,
-        requested_rooms VARCHAR
-        );''')
-        
-    except: pass
-    """
-    # put a button on here that manages request dbs
+
+    #run this stuff at the end, after all as a cleanup step
+
+    
+    
+    
     return 'Generating and Printing Page'
 
 
@@ -438,4 +497,4 @@ def dbcurrent_schedule():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<head>
+      <style>
+       .new-page {
+    page-break-after: always;
+}
+      </style>
+
+    <title></title>
+</head>
+<body>
+    
+    {% for row in rows %}
+    <p class="new-page"></p>
+    <h1>ACADEMIC ADVISORY REQUEST</h1>
+    <h1>YOUVE BEEN A BAD BOY {{ row[4] }}</h1>
+    <h1>GO TO {{ row[2] }} / {{ row[6] }} {{ row[7] }} </h1>
+    {% endfor %}
+</body>
+</html>
