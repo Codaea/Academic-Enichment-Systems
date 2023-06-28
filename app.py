@@ -95,6 +95,50 @@ def has_permission(permission):
         return wrapper
     return decorator
 
+# ran before app
+def setup():
+    print('running setup!')
+
+    # users table setup
+    try:
+        cursor.execute('''
+        CREATE TABLE users (
+        id INTEGER,
+        username VARCHAR,
+        password VARCHAR,
+        last_name VARCHAR,
+        first_name VARCHAR,
+        advisory_room SMALLINT,
+        user_email VARCHAR,
+        prefix VARCHAR,
+        role VARCHAR
+    );''') # creates usertable if it doesnt exist
+        cursor.execute('''
+        INSERT INTO users (
+        id,
+        username,
+        password,
+        last_name, 
+        first_name,
+        advisory_room,
+        user_email,
+        prefix,
+        role
+        )
+    VALUES (1, 'root', 'root', 'root', 'root', 999, 'root@gmail.com', 'Mr.', 'root');
+    ''') # adds setup user with name root and root
+    except:
+        print('users table already made!')
+    
+    # requests table setup
+    try:
+        cursor.execute('''
+        CREATE TABLE  requests (
+        studentId INTEGER NOT NULL,
+        requested_room VARCHAR
+        );''')
+    except: print('requests table already exists!')
+
 
 #----------------------------#
 #       ALL APP ROUTES       #
@@ -482,9 +526,14 @@ def dbupload_schedule():
             cursor.execute("DROP TABLE schedule_backup") # deletes existing backup table
         except:
             print("No existing backuptable to delete")
+        try:
+            cursor.execute("CREATE TABLE schedule_backup AS SELECT * FROM masterschedule;") # creates new backup table from old schedule
+        except: print('no masterschedule to backup!')
         
-        cursor.execute("CREATE TABLE schedule_backup AS SELECT * FROM masterschedule;") # creates new backup table from old schedule
-        cursor.execute("DROP TABLE masterschedule;") # deletes old master
+        
+        try:
+            cursor.execute("DROP TABLE masterschedule;") # deletes old master
+        except: print('no master schedule table to delete')
         cursor.execute( # creates new table
                         '''CREATE TABLE IF NOT EXISTS masterschedule (
                         studentId INTEGER,
@@ -511,23 +560,26 @@ def dbupload_schedule():
         except StopIteration: # Handle the case when there are no more rows to iterate over
             pass
         #try:
-        for row in csv_reader: # iterates through and adds following rows
-            cursor.execute('''INSERT INTO masterschedule (
-                        studentId,
-                        lastName,
-                        firstName,
-                        advisoryRoom,
-                        period1,
-                        period2,
-                        period3,
-                        period4,
-                        period5,
-                        period6,
-                        period7,
-                        period8)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', row)
-        connect.commit()# Commit the changes and close the connection
-        return 'uploaded!'
+        try:
+            for row in csv_reader: # iterates through and adds following rows
+                cursor.execute('''INSERT INTO masterschedule (
+                            studentId,
+                            lastName,
+                            firstName,
+                            advisoryRoom,
+                            period1,
+                            period2,
+                            period3,
+                            period4,
+                            period5,
+                            period6,
+                            period7,
+                            period8)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', row)
+            connect.commit()# Commit the changes and close the connection
+            return 'uploaded!'
+        except: 
+            return 'Something went wrong. is the scedule format right?'
     
 
     else:
@@ -539,9 +591,9 @@ def dbupload_schedule():
 def dbcurrent_schedule():
     cursor.execute("SELECT * FROM masterschedule") # sets schedule to the db 
     rows = cursor.fetchall()
-    connect.close()
     return render_template('config/currentschedule.html', rows=rows)
 
+setup()
 
 if __name__ == '__main__':
     app.run(debug=True)
