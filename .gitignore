@@ -1,8 +1,8 @@
 venv/
 .vscode/
-
+*.pdf
 *.db*
-
+decoderqr.py
 # everything past here is GitHub Generated
 
 # Byte-compiled / optimized / DLL files
