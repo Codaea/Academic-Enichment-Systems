@@ -1,11 +1,12 @@
 import io
-import fitz
+from pdf2image import convert_from_path
 from pyzbar import pyzbar
 from PIL import Image
 import time
 
 
 def start_benchmark():
+    global start_time
     start_time = time.time()
 
 
@@ -17,24 +18,36 @@ def stop_benchmark():
 
 
 
-def decode_qr_codes_from_pdf(pdf_path):
+def pdf_to_images(pdf_path):
+    images = convert_from_path(pdf_path)
+    return images
+
+def decode_qr_codes(images):
     qr_codes = []
-    doc = fitz.open(pdf_path)
-    for page in doc:
-        image_list = page.get_pixmap()
-        img = Image.frombytes("RGB", (image_list.width, image_list.height), image_list.samples)
-        decoded_objects = pyzbar.decode(img)
+    for image in images:
+        # Convert the image to grayscale
+        image = image.convert("L")
+        # Decode the QR codes in the image
+        decoded_objects = pyzbar.decode(image)
         for obj in decoded_objects:
             qr_code = obj.data.decode("utf-8")
             qr_codes.append(qr_code)
-    doc.close()
     return qr_codes
+
 
 
 
 pdf_path = r"C:/Users/dakot/Documents/GitHub/CghsAE/Requests.pdf"
 
+
+
+
+
 # run 
 start_benchmark()
-qr_codes = decode_qr_codes_from_pdf(pdf_path)
+images = pdf_to_images(pdf_path)
 stop_benchmark()
+start_benchmark()
+qr_codes = decode_qr_codes(images)
+stop_benchmark()
+print(qr_codes)
