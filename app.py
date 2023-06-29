@@ -6,10 +6,15 @@ from datetime import datetime, timedelta # sets jwt expiry
 import json # auth checking
 import csv # for db uploading
 from io import StringIO, BytesIO # done for csv conversion to sqlite, and qr code to base64
-import time # for waiting before rerouting
+import time # for waiting before rerouting (unused atm)
 import pdfkit # for making pdfs from html
 import qrcode # for scanning pages
 import base64 # directly passing in images to html (for qr codes)
+from PIL import Image # proccessing pdf uploads
+from pdf2image import convert_from_bytes # pdf to image
+from pyzbar import pyzbar # proccessing qrcode decoding (faster)
+
+
 app = Flask(__name__)
 
 
@@ -29,7 +34,7 @@ cursor = connect.cursor()
 
 # User roles and their corresponding permissions
 ROLES = {
-    'root': ['read requests', 'write requests', 'gen requests', 'reports', 'config'],
+    'root': ['read requests', 'write requests', 'gen requests', 'reports', 'config', 'edit schedule'],
     'admin': ['read requests', 'write requests', 'gen requests', 'reports','edit schedule'],
     'eUser': ['read requests', 'write requests', 'gen requests', 'reports'],
     'attendance': ['reports'],
@@ -435,6 +440,59 @@ def printrequests():
     
     return 'Generating and Printing Page'
 
+@app.route('/apanel/uploadrequestspdf', methods=['GET', 'POST'])
+def scanrequests():
+    
+    if request.method == 'POST':
+
+        # Get the uploaded file from the form
+        file = request.files['file']
+
+        # Convert the PDF file to images
+        images = convert_from_bytes(file.read(), dpi=300)
+
+        # Process the images and decode the QR codes
+        qr_codes = []
+        for image in images:
+        # Convert the image to grayscale
+            image = image.convert("L")
+            # Decode the QR codes in the image
+            decoded_objects = pyzbar.decode(image)
+            for obj in decoded_objects:
+                qr_code = obj.data.decode("utf-8")
+                qr_codes.append(qr_code)
+
+
+        # SQL STUFF PAST HERE
+
+        # making new sql table
+        table_name = "Report_" + datetime.now().strftime("%m_%d")
+        try:
+            cursor.execute("DROP TABLE returned_ids")
+        except: pass # first run
+        cursor.execute("CREATE TABLE IF NOT EXISTS returned_ids (id INTEGER)")
+
+        # insert into returned_ids table table
+        for qr_code in qr_codes:
+            print(qr_code)
+            query = "INSERT INTO returned_ids (id) VALUES (?)"
+            cursor.execute(query, (qr_code,)) # puts qr_code ids into returned_ids table
+        connect.commit()
+
+        # compare tables and and keeps values with no match in new table labeled Report_MM_DD
+        cursor.execute(f'''
+        CREATE TABLE {table_name} AS
+        SELECT *
+        FROM genrequests
+        WHERE genrequests.id NOT IN (
+        SELECT returned_ids.id
+        FROM returned_ids)
+        ''')
+        connect.commit()
+
+        return 'Uploaded and updated reports!'
+
+    return 'wrong request type!'
 
 # for the attendance office to read what happened. might also send email
 @app.route('/attendancereport', methods=['GET'])
@@ -519,7 +577,7 @@ def dbupload_users():
 
 # uploading the schedule table
 @app.route('/config/dbsetup/uploadschedule', methods=['GET', 'POST'])
-@has_permission('config')
+@has_permission('edit schedule')
 def dbupload_schedule():
     if request.method == 'POST':
         try: # running try except in case no backup has ever made (first ever run)
@@ -587,7 +645,7 @@ def dbupload_schedule():
 
 # shows current master scedule in a html table
 @app.route('/config/dbsetup/currentschedule')
-@has_permission('config')
+@has_permission('edit schedule')
 def dbcurrent_schedule():
     cursor.execute("SELECT * FROM masterschedule") # sets schedule to the db 
     rows = cursor.fetchall()

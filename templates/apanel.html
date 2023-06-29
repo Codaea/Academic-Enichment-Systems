@@ -8,5 +8,10 @@
 <body>
     <h1><a href="/apanel/generaterequestspdf">Print Requests</a></h1>
     <h1>Reports</h1>
+
+    <h1>QR Code PDF Upload</h1>
+    <form action="/apanel/uploadrequestspdf" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".pdf" required>
+        <input type="submit" value="Upload">
 </body>
 </html>
