@@ -272,7 +272,7 @@ def erequests():
     return render_template('erequest.html', all_periods=all_periods, Fname=teacher_first_name, Room_Number=advisory_room, )
 
 
-# handles erequest form and adds to requests table in db
+# handles erequest form and adds to requests table in db from /erequests
 @app.route('/processerequests', methods=['GET','POST'])
 @has_permission('requests')
 def proccess_erequests():
@@ -440,6 +440,8 @@ def printrequests():
     
     return 'Generating and Printing Page'
 
+
+# uploading existing requests and matching to old ones for reports feature
 @app.route('/apanel/uploadrequestspdf', methods=['GET', 'POST'])
 def scanrequests():
     
@@ -496,10 +498,16 @@ def scanrequests():
 
 # for the attendance office to read what happened. might also send email
 @app.route('/attendancereport', methods=['GET'])
-@has_permission('read reports')
+@has_permission('reports')
 def attendancereport():
 
-    return 'attendace reports for tina in the office!'
+    try:
+        cursor.execute("SELECT * FROM Report")
+        rows = cursor.fetchall()
+    except:
+        print('no rows to return for attendace reports!')
+
+    return render_template('reports.html', rows=rows)
 
 
 #----------------------------#
