@@ -1,12 +1,10 @@
-*{
-    font-family: Arial, Helvetica, sans-serif;
-
+* {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-body{
-    background-color: rgb(63, 63, 63);
+body {
+  background-color: rgb(63, 63, 63);
 }
-
 
 ul {
   position: fixed;
@@ -16,13 +14,13 @@ ul {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: #333;
+  background-color: #0D6EFD; /* Primary blue background color */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add box shadow for depth */
 }
 
 li {
   float: left;
 }
-
 
 li a {
   display: block;
@@ -30,30 +28,29 @@ li a {
   text-align: center;
   padding: 14px 16px;
   text-decoration: none;
+  transition: background-color 0.3s; /* Smooth transition for hover effect */
 }
 
-/* Change the link color to #111 (black) on hover */
 li a:hover {
-  background-color: #111;
+  background-color: #084FB1; /* Darker shade of blue on hover */
 }
 
-
-.form{
-    margin: auto;
-    background-color: #848484;
-    width:700px ;
-    text-align: center;
-    
+.form {
+  margin: auto;
+  background-color: #848484;
+  width: 700px;
+  text-align: center;
 }
+
 input[type=text] {
-    transition: width 0.4s ease-in-out;
-    width:50%;
-    height: 150px;
-  }
-input[type=text]:focus {
-    width: 100%;
-  }
+  transition: width 0.4s ease-in-out;
+  width: 50%;
+  height: 150px;
+}
 
+input[type=text]:focus {
+  width: 100%;
+}
 
 .dot_green {
   height: 15px;
@@ -71,19 +68,4 @@ input[type=text]:focus {
   display: inline-block;
 }
 
-.dot_orange {
-  height: 15px;
-  width: 15px;
-  background-color: orange;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.dot_red {
-  height: 15px;
-  width: 15px;
-  background-color: #ff0000;
-  border-radius: 50%;
-  display: inline-block;
-}
-
+.dot
