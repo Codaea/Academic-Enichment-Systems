@@ -3,7 +3,7 @@
 }
 
 body {
-  background-color: rgb(63, 63, 63);
+  background-color: #EFEFEF; /* Light gray background */
 }
 
 ul {
@@ -14,7 +14,7 @@ ul {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: #0D6EFD; /* Primary blue background color */
+  background-color: #183C6A; /* Dark blue background color */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add box shadow for depth */
 }
 
@@ -32,14 +32,17 @@ li a {
 }
 
 li a:hover {
-  background-color: #084FB1; /* Darker shade of blue on hover */
+  background-color: #0A2350; /* Darker shade of blue on hover */
 }
 
 .form {
-  margin: auto;
-  background-color: #848484;
-  width: 700px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   text-align: center;
+  width: 1000px;
+  background-color: #F6F6F6; /* Light gray background for form */
 }
 
 input[type=text] {
@@ -52,10 +55,26 @@ input[type=text]:focus {
   width: 100%;
 }
 
+.button {
+  background-color: #183C6A; /* Dark blue background color for buttons */
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  text-decoration: none;
+  margin: 15px;
+  cursor: pointer;
+  transition: 0.5s;
+  display: inline-block;
+}
+
+.button:hover {
+  background-color: #0A2350; /* Darker shade of blue on hover */
+}
+
 .dot_green {
   height: 15px;
   width: 15px;
-  background-color: #00a800;
+  background-color: #00A800; /* Green color for dot */
   border-radius: 50%;
   display: inline-block;
 }
@@ -63,9 +82,23 @@ input[type=text]:focus {
 .dot_yellow {
   height: 15px;
   width: 15px;
-  background-color: rgb(208, 255, 0);
+  background-color: #D0FF00; /* Yellow color for dot */
   border-radius: 50%;
   display: inline-block;
 }
 
-.dot
+.dot_orange {
+  height: 15px;
+  width: 15px;
+  background-color: #FFA500; /* Orange color for dot */
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot_red {
+  height: 15px;
+  width: 15px;
+  background-color: #FF0000; /* Red color for dot */
+  border-radius: 50%;
+  display: inline-block;
+}
