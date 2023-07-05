@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Requests pdf</title>
+    <link rel="stylesheet" href="../static/css/uploadrequestsform.css">
+</head>
+<body>
+    <form
+          action="/apanel/uploadrequestspdf"
+          method="post"
+          enctype="multipart/form-data"
+        >
+        <label for="images" class="drop-container" id="dropcontainer">
+            <span class="drop-title">Drop files here</span>
+            or
+            <input type="file" id="images" accept="image/*" required>
+          </label>
+          <input type="submit" value="Upload" />
+        </form>
+</body>
+</html>

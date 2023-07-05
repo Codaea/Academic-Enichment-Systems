@@ -1,0 +1,81 @@
+* {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+ul {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #0D6EFD; /* Primary blue background color */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add box shadow for depth */
+  }
+  
+  li {
+    float: left;
+  }
+  
+  li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+  }
+  
+  li a:hover {
+    background-color: #084FB1; /* Darker shade of blue on hover */
+  }
+
+  div .container { 
+    background-color: rgb(221, 221, 221);
+    border: 3px solid #fff;
+    padding: 20px;
+  }
+  
+  div .container-child { 
+    text-align: center;
+    max-width: fit-content;
+    width: 50%;
+    float: left;
+    padding: 20px;
+    border: 2px solid red;
+  }
+
+  .drop-container {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px dashed #555;
+    color: #444;
+    cursor: pointer;
+    transition: background .2s ease-in-out, border .2s ease-in-out;
+  }
+  
+  .drop-container:hover {
+    background: #eee;
+    border-color: #111;
+  }
+  
+  .drop-container:hover .drop-title {
+    color: #222;
+  }
+  
+  .drop-title {
+    color: #444;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    transition: color .2s ease-in-out;
+  }

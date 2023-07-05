@@ -300,6 +300,10 @@ def admin_panel():
     # put a button on here that manages request dbs
     return render_template('apanel.html')
 
+@app.route('/apanel/generaterequestsareyousure')
+def genrequests_check():
+    return render_template('generaterequestspdfareyousure.html')
+
 
 # generating and printing requests
 @app.route('/apanel/generaterequestspdf', methods=['GET','POST'])
@@ -440,6 +444,9 @@ def printrequests():
     
     return 'Generating and Printing Page'
 
+@app.route('/apanel/uploadrequestsform')
+def request_upload_form():
+    return render_template('uploadrequestsform.html')
 
 # uploading existing requests and matching to old ones for reports feature
 @app.route('/apanel/uploadrequestspdf', methods=['GET', 'POST'])
