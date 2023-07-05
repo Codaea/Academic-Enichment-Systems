@@ -18,17 +18,15 @@
   <br>
   <br>
   <br>
-    <form
-          action="/apanel/uploadrequestspdf"
-          method="post"
-          enctype="multipart/form-data"
-        >
+    <form action="/apanel/uploadrequestspdf"method="post" enctype="multipart/form-data">
         <label for="images" class="drop-container" id="dropcontainer">
-            <span class="drop-title">Drop files here</span>
-            or
-            <input type="file" id="file" accept="application/pdf" required>
+            <span class="drop-title">Drop file here</span>
+            <p>or</p>
+            <input type="file" name="file" accept=".pdf" required>
           </label>
-          <input type="submit" value="Upload" />
+          <div class="buttonalign">
+          <input class="button" type="submit" value="Upload" />
+        </div>
         </form>
 </body>
 </html>
