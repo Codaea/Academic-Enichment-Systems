@@ -300,6 +300,8 @@ def admin_panel():
     # put a button on here that manages request dbs
     return render_template('apanel/apanel.html')
 
+
+# makes a are you sure about uploading requests just in case
 @app.route('/apanel/generaterequestsareyousure')
 def genrequests_check():
     return render_template('apanel/generaterequestspdfareyousure.html')
@@ -428,9 +430,12 @@ def printrequests():
 
     return response
 
+
+# a second check before uploading requests cause takes long time
 @app.route('/apanel/uploadrequestsform')
 def request_upload_form():
     return render_template('apanel/uploadrequestsform.html')
+
 
 # uploading existing requests and matching to old ones for reports feature
 @app.route('/apanel/uploadrequestspdf', methods=['GET', 'POST'])
@@ -488,6 +493,8 @@ def scanrequests():
 
     return 'wrong request type!'
 
+
+# help page for cwells
 @app.route('/apanel/help')
 @has_permission('gen requests')
 def apanel_help():
