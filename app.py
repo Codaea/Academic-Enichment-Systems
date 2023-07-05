@@ -298,11 +298,11 @@ def proccess_erequests():
 def admin_panel():
 
     # put a button on here that manages request dbs
-    return render_template('apanel.html')
+    return render_template('apanel/apanel.html')
 
 @app.route('/apanel/generaterequestsareyousure')
 def genrequests_check():
-    return render_template('generaterequestspdfareyousure.html')
+    return render_template('apanel/generaterequestspdfareyousure.html')
 
 
 # generating and printing requests
@@ -376,8 +376,6 @@ def printrequests():
     
     connect.commit()
 
-
-    """
     # commeted out for my sanity
 
     # drops 'requests' and makes new 'requests' tables for next iteration
@@ -390,7 +388,7 @@ def printrequests():
         );''')
         
     except: pass
-    """
+    
     # End of Precleaning
     
     # MAIN CODE
@@ -409,13 +407,8 @@ def printrequests():
     rows = cursor.fetchall() # gets selection to pass into render_template
     # [row[column]]
     # columns start at 0. id, StudentID, requestedroom, advisoryroom, firstName, lastName, prefix, teachername, 8
-
-    
-        
-
-
     # rendering pdf
-    rendered = render_template('requestspdftemplate.html', rows=rows,)
+    rendered = render_template('apanel/requestspdftemplate.html', rows=rows,)
 
     # return rendered # remove this for when wanting pdf
 
@@ -431,25 +424,17 @@ def printrequests():
     response = app.make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=Requests.pdf'
+
+
     return response
-
-
-
-    
-
-    #run this stuff at the end, after all as a cleanup step
-
-    
-    
-    
-    return 'Generating and Printing Page'
 
 @app.route('/apanel/uploadrequestsform')
 def request_upload_form():
-    return render_template('uploadrequestsform.html')
+    return render_template('apanel/uploadrequestsform.html')
 
 # uploading existing requests and matching to old ones for reports feature
 @app.route('/apanel/uploadrequestspdf', methods=['GET', 'POST'])
+@has_permission('gen requests')
 def scanrequests():
     
     if request.method == 'POST':
@@ -502,6 +487,12 @@ def scanrequests():
         return 'Uploaded and updated reports!'
 
     return 'wrong request type!'
+
+@app.route('/apanel/help')
+@has_permission('gen requests')
+def apanel_help():
+    return render_template('apanel/help.html')
+
 
 # for the attendance office to read what happened. might also send email
 @app.route('/attendancereport', methods=['GET'])
