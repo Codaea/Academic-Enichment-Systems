@@ -6,6 +6,9 @@
     <meta name="description" content>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../static/css/erequest.css">
+    <style>
+        /* Insert the modified CSS code here */
+    </style>
 </head>
 <body>
     <ul>
@@ -15,56 +18,62 @@
         <li style="float:right"><a href="/logout">Log Out</a></li>
         <li style="float:right" class="nohover"><a>{{teacher_name}}</a></li>
     </ul>
-    <br>
-    <br>
     <div class="form">
         <form method="POST" action="/processerequests">
-            <table>
-                <div class="sticky">
-                <thead>
-                    <tr>
-                        <th>Checkbox</th>
-                        <th>Student</th>
-                        <th>Student ID</th>
-                        <th>Presence</th>
-                    </tr>
-                </thead>
-                </div>
-                <tbody>
-                    {% for key, value in all_periods.items() %}
-                    <tr>
-                        <td colspan="4"><p>Period {{ key }}</p></td>
-                    </tr>
-                    {% for row in value %}
-                    <tr>
-                        <td>
-                            <label>
-                                <input class="container" type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
-                            </label>
-                        </td>
-                        <td>{{ row[2] }} {{ row[1] }}</td>
-                        <td>{{ row[0] }}</td>
-                        <td>
-                            {% if row[12] %}
-                                {% if Room_Number|string == row[12] %}
-                                    <span class="dot_yellow" title="{{row[12]}}"></span>
-                                {% elif Room_Number|string in row[12] %}
-                                    <span class="dot_red" title="{{row[12]}}"></span>
-                                {% else %}
-                                    <span class="dot_orange" title="{{row[12]}}"></span>
-                                {% endif %}
-                            {% else %}
-                                <span class="dot_green"></span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div id="table-container">
+                <br><br>
+                <br><br>
+                <br><br>
+                <br><br>
+                <br><br>
+                <br><br>
+              <table id="table">
+                  <div>
+                  <thead>
+                      <tr>
+                          <th>Checkbox</th>
+                          <th>Student</th>
+                          <th>Student ID</th>
+                          <th>Presence</th>
+                      </tr>
+                  </thead>
+                  </div>
+                  <tbody>
+                      {% for key, value in all_periods.items() %}
+                      <tr>
+                          <td colspan="4"><p>Period {{ key }}</p></td>
+                      </tr>
+                      {% for row in value %}
+                      <tr>
+                          <td>
+                              <label>
+                                  <input class="container" type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
+                              </label>
+                          </td>
+                          <td>{{ row[2] }} {{ row[1] }}</td>
+                          <td>{{ row[0] }}</td>
+                          <td>
+                              {% if row[12] %}
+                                  {% if Room_Number|string == row[12] %}
+                                      <span class="dot_yellow" title="{{row[12]}}"></span>
+                                  {% elif Room_Number|string in row[12] %}
+                                      <span class="dot_red" title="{{row[12]}}"></span>
+                                  {% else %}
+                                      <span class="dot_orange" title="{{row[12]}}"></span>
+                                  {% endif %}
+                              {% else %}
+                                  <span class="dot_green"></span>
+                              {% endif %}
+                          </td>
+                      </tr>
+                      {% endfor %}
+                      {% endfor %}
+                  </tbody>
+              </table>
+            </div>
 
             <br>
-            <input type="text" name="StudentIds" placeholder="Student Ids, Comma Separated">
+            <!-- <input type="text" name="StudentIds" placeholder="Student Ids, Comma Separated"> -->
             <br>
             <input type="hidden" name="requesting_room" value="{{Room_Number}}">
             <button class="button" type="submit">Submit</button>
