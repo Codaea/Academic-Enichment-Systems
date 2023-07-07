@@ -502,7 +502,7 @@ def apanel_help():
 
 
 # for the attendance office to read what happened. might also send email
-@app.route('/attendancereport', methods=['GET'])
+@app.route('/reports', methods=['GET'])
 @has_permission('reports')
 def attendancereport():
 
