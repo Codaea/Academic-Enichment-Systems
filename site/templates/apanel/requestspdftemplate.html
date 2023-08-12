@@ -5,7 +5,7 @@
     page-break-after: always;
 }
       </style>
-
+    <link rel="stylesheet" href="/static/css/pdftemplate.css">
     <title></title>
 </head>
 <body>
@@ -15,6 +15,7 @@
     <h1>ACADEMIC ADVISORY REQUEST</h1>
     <h1>YOUVE BEEN A BAD BOY {{ row[4] }}</h1>
     <h1>GO TO {{ row[2] }} / {{ row[6] }} {{ row[7] }} </h1>
+    <img src="data:image/png;base64,{{ row[8] }}">
     {% endfor %}
 </body>
 </html>

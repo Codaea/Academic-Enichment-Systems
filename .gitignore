@@ -1,6 +1,10 @@
 venv/
 .vscode/
+*.pdf
+decoderqr.py
 
+# mac
+.DS_Store
 *.db*
 
 # everything past here is GitHub Generated
@@ -133,9 +137,6 @@ venv.bak/
 
 # Rope project settings
 .ropeproject
-
-# mkdocs documentation
-/site
 
 # mypy
 .mypy_cache/
