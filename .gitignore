@@ -4,6 +4,9 @@ venv/
 *.db*
 decoderqr.py
 
+# mac
+.DS_Store
+
 scratch.py
 # everything past here is GitHub Generated
 
