@@ -1,13 +1,12 @@
 venv/
 .vscode/
 *.pdf
-*.db*
 decoderqr.py
 
 # mac
 .DS_Store
+*.db*
 
-scratch.py
 # everything past here is GitHub Generated
 
 # Byte-compiled / optimized / DLL files
