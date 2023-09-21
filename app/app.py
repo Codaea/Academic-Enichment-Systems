@@ -12,7 +12,6 @@ import qrcode # for scanning pages
 import base64 # directly passing in images to html (for qr codes)
 from PIL import Image # proccessing pdf uploads
 from pdf2image import convert_from_bytes # pdf to image
-from pyzbar import pyzbar # proccessing qrcode decoding (faster)
 
 
 app = Flask(__name__)
@@ -20,7 +19,7 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'your-secret-key' # make something secure, ive been using this for a while now
 #https://wkhtmltopdf.org/index.html
-pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe') # /path/to/wkhtmltopdf 
+pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'') # /path/to/wkhtmltopdf 
 
 
 
@@ -429,70 +428,6 @@ def printrequests():
 
 
     return response
-
-
-# a second check before uploading requests cause takes long time
-@app.route('/apanel/uploadrequestsform')
-def request_upload_form():
-    return render_template('apanel/uploadrequestsform.html')
-
-
-# uploading existing requests and matching to old ones for reports feature
-@app.route('/apanel/uploadrequestspdf', methods=['GET', 'POST'])
-@has_permission('gen requests')
-def scanrequests():
-    
-    if request.method == 'POST':
-
-        # Get the uploaded file from the form
-        file = request.files['file']
-
-        # Convert the PDF file to images
-        images = convert_from_bytes(file.read(), dpi=300)
-
-        # Process the images and decode the QR codes
-        qr_codes = []
-        for image in images:
-        # Convert the image to grayscale
-            image = image.convert("L")
-            # Decode the QR codes in the image
-            decoded_objects = pyzbar.decode(image)
-            for obj in decoded_objects:
-                qr_code = obj.data.decode("utf-8")
-                qr_codes.append(qr_code)
-
-
-        # SQL STUFF PAST HERE
-
-        # making new sql table
-        table_name = "Report_" + datetime.now().strftime("%m_%d")
-        try:
-            cursor.execute("DROP TABLE returned_ids")
-        except: pass # first run
-        cursor.execute("CREATE TABLE IF NOT EXISTS returned_ids (id INTEGER)")
-
-        # insert into returned_ids table table
-        for qr_code in qr_codes:
-            print(qr_code)
-            query = "INSERT INTO returned_ids (id) VALUES (?)"
-            cursor.execute(query, (qr_code,)) # puts qr_code ids into returned_ids table
-        connect.commit()
-
-        # compare tables and and keeps values with no match in new table labeled Report_MM_DD
-        cursor.execute(f'''
-        CREATE TABLE {table_name} AS
-        SELECT *
-        FROM genrequests
-        WHERE genrequests.id NOT IN (
-        SELECT returned_ids.id
-        FROM returned_ids)
-        ''')
-        connect.commit()
-
-        return 'Uploaded and updated reports!'
-
-    return 'wrong request type!'
-
 
 # help page for cwells
 @app.route('/apanel/help')
