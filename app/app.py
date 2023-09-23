@@ -426,8 +426,6 @@ def printrequests():
     # rendering pdf
     rendered = render_template('apanel/requestspdftemplate.html', rows=rows,)
 
-    return rendered
-
     try:
 
 
@@ -439,15 +437,13 @@ def printrequests():
         # Generate the PDF from the HTML content
         pdf = pdfkit.from_string(html_content, False, configuration=pdfkit_config)
 
-        # Return the PDF as a response
-        response = app.make_response(pdf)
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = 'inline; filename=example.pdf'
+
+
+        return send_file(pdf, attachment_filename='requests.pdf', as_attachment=True)
     except:
-        print('error with pdfkit!')
         pass
 
-    return response
+
 
 
 # help page for cwells
