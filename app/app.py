@@ -19,7 +19,8 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'your-secret-key' # make something secure, ive been using this for a while now
 #https://wkhtmltopdf.org/index.html
-pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'') # /path/to/wkhtmltopdf 
+
+# C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe
 
 
 
@@ -139,7 +140,8 @@ def setup():
         cursor.execute('''
         CREATE TABLE  requests (
         studentId INTEGER NOT NULL,
-        requested_room VARCHAR
+        requested_room VARCHAR,
+        priority INT
         );''')
     except: print('requests table already exists!')
 
@@ -278,13 +280,26 @@ def proccess_erequests():
     if request.method == 'POST':
         # form proccessing logic here
 
-        selected_ids = request.form.getlist('selected_rows[]')
+        lowSelectedIds = request.form.getlist('low_selected_rows[]')
+        mediumSelectedIds = request.form.getlist('medium_selected_rows[]')
+        highSelectedIds = request.form.getlist('high_selected_rows[]')
+
+
         requesting_room = request.form.get('requesting_room')
 
-        for student_id in selected_ids:
-            print(student_id)    
+        for lowSelectedId in lowSelectedIds:
+            priority = 1
+            cursor.execute("INSERT INTO requests (studentId, requested_room, priority) VALUES (?, ?, ?)", (lowSelectedId, requesting_room, priority,))
 
-            cursor.execute("INSERT INTO requests (studentId, requested_room) VALUES (?, ?)", (student_id, requesting_room,))
+        for mediumSelectedId in mediumSelectedIds:
+            priority = 2
+            cursor.execute("INSERT INTO requests (studentId, requested_room, priority) VALUES (?, ?, ?)", (mediumSelectedId, requesting_room, priority,))
+
+        for highSelectedId in highSelectedIds:
+            priority = 3
+            cursor.execute("INSERT INTO requests (studentId, requested_room, priority) VALUES (?, ?, ?)", (highSelectedId, requesting_room, priority,))
+
+
 
         # commit changes and close
         connect.commit()
@@ -315,7 +330,7 @@ def printrequests():
 
     # for first run incase no table
     try:
-        cursor.execute("DROP TABLE genrequests") # deletes genrequest for new iteration and will error if doesnt exist
+        cursor.execute("DROP TABLE IF EXISTS genrequests") # deletes genrequest for new iteration if it exists
     except:
         print('No genrequests table to drop! making new table..')
     finally: # makes new genrequests table
@@ -329,15 +344,16 @@ def printrequests():
         lastName TEXT,
         prefix TEXT,
         last_name TEXT,
-        base64qr BLOB
+        base64qr BLOB,
+        priority INT
         );'''
         
         cursor.execute(query) # creates genrequest table 
         print('New Table!')
 
     query = '''
-    INSERT INTO genrequests (studentID, requested_room, advisory_room, firstName, lastName, prefix, last_name)
-    SELECT r.studentID, r.requested_room, u.advisory_room, m.firstName, m.lastName, u.prefix, u.last_name
+    INSERT INTO genrequests (studentID, requested_room, advisory_room, firstName, lastName, prefix, last_name, priority)
+    SELECT r.studentID, r.requested_room, u.advisory_room, m.firstName, m.lastName, u.prefix, u.last_name, r.priority
     FROM requests r
     JOIN masterschedule m ON r.studentID = m.studentID
     JOIN users u ON r.requested_room = u.advisory_room;
@@ -377,15 +393,14 @@ def printrequests():
     
     connect.commit()
 
-    # commeted out for my sanity
-
-    # drops 'requests' and makes new 'requests' tables for next iteration
+    
     try:
         cursor.execute("DROP TABLE requests") 
         cursor.execute('''
         CREATE TABLE  requests (
         studentId INTEGER NOT NULL,
-        requested_room VARCHAR
+        requested_room VARCHAR,
+        priority INT
         );''')
         
     except: pass
@@ -411,23 +426,29 @@ def printrequests():
     # rendering pdf
     rendered = render_template('apanel/requestspdftemplate.html', rows=rows,)
 
-    # return rendered # remove this for when wanting pdf
+    return rendered
 
     try:
-    # Generate the PDF from the HTML content
-        pdf = pdfkit.from_string(rendered, False, configuration=pdfkit_config)
 
-    except IOError as e: # clean this up future me
-        print("wkhtmltopdf reported an error:")
-        print(e)
 
-    # Return the PDF as a response
-    response = app.make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'inline; filename=Requests.pdf'
+        pdfkit_config = pdfkit.configuration(wkhtmltopdf='C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe')
 
+        # Define the HTML content to convert to PDF
+        html_content = rendered
+
+        # Generate the PDF from the HTML content
+        pdf = pdfkit.from_string(html_content, False, configuration=pdfkit_config)
+
+        # Return the PDF as a response
+        response = app.make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'inline; filename=example.pdf'
+    except:
+        print('error with pdfkit!')
+        pass
 
     return response
+
 
 # help page for cwells
 @app.route('/apanel/help')

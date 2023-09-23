@@ -29,7 +29,9 @@
                   <div>
                   <thead>
                       <tr>
-                          <th>Checkbox</th>
+                          <th>High</th>
+                          <th>Medium</th>
+                          <th>Low</th>
                           <th>Student</th>
                           <th>Student ID</th>
                           <th>Presence</th>
@@ -45,9 +47,19 @@
                       <tr>
                           <td>
                               <label>
-                                  <input class="container" type="checkbox" name="selected_rows[]" value="{{ row[0] }}">
+                                  <input class="container" type="checkbox" name="high_selected_rows[]" value="{{ row[0] }}">
                               </label>
                           </td>
+                          <td>
+                            <label>
+                                <input class="container" type="checkbox" name="medium_selected_rows[]" value="{{ row[0] }}">
+                            </label>
+                        </td>
+                        <td>
+                            <label>
+                                <input class="container" type="checkbox" name="low_selected_rows[]" value="{{ row[0] }}">
+                            </label>
+                        </td>
                           <td>{{ row[2] }} {{ row[1] }}</td>
                           <td>{{ row[0] }}</td>
                           <td>
