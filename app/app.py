@@ -7,21 +7,16 @@ import json # auth checking
 import csv # for db uploading
 from io import StringIO, BytesIO # done for csv conversion to sqlite, and qr code to base64
 import time # for waiting before rerouting (unused atm)
-import pdfkit # for making pdfs from html
 import qrcode # for scanning pages
 import base64 # directly passing in images to html (for qr codes)
 from PIL import Image # proccessing pdf uploads
 from pdf2image import convert_from_bytes # pdf to image
-from pyzbar import pyzbar # proccessing qrcode decoding (faster)
 
 
 app = Flask(__name__)
 
 
 app.config['SECRET_KEY'] = 'your-secret-key' # make something secure, ive been using this for a while now
-#https://wkhtmltopdf.org/index.html
-pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe') # /path/to/wkhtmltopdf 
-
 
 
 
@@ -140,7 +135,8 @@ def setup():
         cursor.execute('''
         CREATE TABLE  requests (
         studentId INTEGER NOT NULL,
-        requested_room VARCHAR
+        requested_room VARCHAR,
+        priority INT
         );''')
     except: print('requests table already exists!')
 
@@ -279,13 +275,26 @@ def proccess_erequests():
     if request.method == 'POST':
         # form proccessing logic here
 
-        selected_ids = request.form.getlist('selected_rows[]')
+        lowSelectedIds = request.form.getlist('low_selected_rows[]')
+        mediumSelectedIds = request.form.getlist('medium_selected_rows[]')
+        highSelectedIds = request.form.getlist('high_selected_rows[]')
+
+
         requesting_room = request.form.get('requesting_room')
 
-        for student_id in selected_ids:
-            print(student_id)    
+        for lowSelectedId in lowSelectedIds:
+            priority = 1
+            cursor.execute("INSERT INTO requests (studentId, requested_room, priority) VALUES (?, ?, ?)", (lowSelectedId, requesting_room, priority,))
 
-            cursor.execute("INSERT INTO requests (studentId, requested_room) VALUES (?, ?)", (student_id, requesting_room,))
+        for mediumSelectedId in mediumSelectedIds:
+            priority = 2
+            cursor.execute("INSERT INTO requests (studentId, requested_room, priority) VALUES (?, ?, ?)", (mediumSelectedId, requesting_room, priority,))
+
+        for highSelectedId in highSelectedIds:
+            priority = 3
+            cursor.execute("INSERT INTO requests (studentId, requested_room, priority) VALUES (?, ?, ?)", (highSelectedId, requesting_room, priority,))
+
+
 
         # commit changes and close
         connect.commit()
@@ -316,7 +325,7 @@ def printrequests():
 
     # for first run incase no table
     try:
-        cursor.execute("DROP TABLE genrequests") # deletes genrequest for new iteration and will error if doesnt exist
+        cursor.execute("DROP TABLE IF EXISTS genrequests") # deletes genrequest for new iteration if it exists
     except:
         print('No genrequests table to drop! making new table..')
     finally: # makes new genrequests table
@@ -330,15 +339,16 @@ def printrequests():
         lastName TEXT,
         prefix TEXT,
         last_name TEXT,
-        base64qr BLOB
+        base64qr BLOB,
+        priority INT
         );'''
         
         cursor.execute(query) # creates genrequest table 
         print('New Table!')
 
     query = '''
-    INSERT INTO genrequests (studentID, requested_room, advisory_room, firstName, lastName, prefix, last_name)
-    SELECT r.studentID, r.requested_room, u.advisory_room, m.firstName, m.lastName, u.prefix, u.last_name
+    INSERT INTO genrequests (studentID, requested_room, advisory_room, firstName, lastName, prefix, last_name, priority)
+    SELECT r.studentID, r.requested_room, u.advisory_room, m.firstName, m.lastName, u.prefix, u.last_name, r.priority
     FROM requests r
     JOIN masterschedule m ON r.studentID = m.studentID
     JOIN users u ON r.requested_room = u.advisory_room;
@@ -378,15 +388,14 @@ def printrequests():
     
     connect.commit()
 
-    # commeted out for my sanity
-
-    # drops 'requests' and makes new 'requests' tables for next iteration
+    
     try:
         cursor.execute("DROP TABLE requests") 
         cursor.execute('''
         CREATE TABLE  requests (
         studentId INTEGER NOT NULL,
-        requested_room VARCHAR
+        requested_room VARCHAR,
+        priority INT
         );''')
         
     except: pass
@@ -408,90 +417,58 @@ def printrequests():
 
     rows = cursor.fetchall() # gets selection to pass into render_template
     # [row[column]]
-    # columns start at 0. id, StudentID, requestedroom, advisoryroom, firstName, lastName, prefix, teachername, 8
-    # rendering pdf
-    rendered = render_template('apanel/requestspdftemplate.html', rows=rows,)
-
-    # return rendered # remove this for when wanting pdf
-
-    try:
-    # Generate the PDF from the HTML content
-        pdf = pdfkit.from_string(rendered, False, configuration=pdfkit_config)
-
-    except IOError as e: # clean this up future me
-        print("wkhtmltopdf reported an error:")
-        print(e)
-
-    # Return the PDF as a response
-    response = app.make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'inline; filename=Requests.pdf'
-
-
-    return response
-
-
-# a second check before uploading requests cause takes long time
-@app.route('/apanel/uploadrequestsform')
-def request_upload_form():
-    return render_template('apanel/uploadrequestsform.html')
-
-
-# uploading existing requests and matching to old ones for reports feature
-@app.route('/apanel/uploadrequestspdf', methods=['GET', 'POST'])
-@has_permission('gen requests')
-def scanrequests():
+    # columns start at 0. id, StudentID, requestedroom, advisoryroom, firstName, lastName, prefix, teachername, qrcodeBase64, priority, 10
     
-    if request.method == 'POST':
-
-        # Get the uploaded file from the form
-        file = request.files['file']
-
-        # Convert the PDF file to images
-        images = convert_from_bytes(file.read(), dpi=300)
-
-        # Process the images and decode the QR codes
-        qr_codes = []
-        for image in images:
-        # Convert the image to grayscale
-            image = image.convert("L")
-            # Decode the QR codes in the image
-            decoded_objects = pyzbar.decode(image)
-            for obj in decoded_objects:
-                qr_code = obj.data.decode("utf-8")
-                qr_codes.append(qr_code)
+    
+    
+    # rendering pdf
 
 
-        # SQL STUFF PAST HERE
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.lib import colors
 
-        # making new sql table
-        table_name = "Report_" + datetime.now().strftime("%m_%d")
-        try:
-            cursor.execute("DROP TABLE returned_ids")
-        except: pass # first run
-        cursor.execute("CREATE TABLE IF NOT EXISTS returned_ids (id INTEGER)")
+    c = canvas.Canvas("output.pdf", pagesize=A4)
+    
 
-        # insert into returned_ids table table
-        for qr_code in qr_codes:
-            print(qr_code)
-            query = "INSERT INTO returned_ids (id) VALUES (?)"
-            cursor.execute(query, (qr_code,)) # puts qr_code ids into returned_ids table
-        connect.commit()
+    pdfmetrics.registerFont(TTFont('Arial', 'arial.ttf'))
 
-        # compare tables and and keeps values with no match in new table labeled Report_MM_DD
-        cursor.execute(f'''
-        CREATE TABLE {table_name} AS
-        SELECT *
-        FROM genrequests
-        WHERE genrequests.id NOT IN (
-        SELECT returned_ids.id
-        FROM returned_ids)
-        ''')
-        connect.commit()
+    
 
-        return 'Uploaded and updated reports!'
+    for row in rows:
 
-    return 'wrong request type!'
+        # do whatever is needed for this page
+
+        # title draw
+        c.setFont('Arial', 30) # increase font size to 30
+        c.drawString(105, 800, "Academic Enrichment Request")
+
+        # main body draw
+
+        c.setFont('Arial', 12) 
+        c.drawString(50, 750, f"{row[4]} {row[5]}, You Have Been Requested By {row[6]} {row[7]}. Please go to {row[2]}.")
+        c.drawString(50, 730, f"Priority Level {row[8]}, Student Id {row[1]}, ")
+
+
+        c.showPage() # add new page to pdf
+    
+
+    c.save() # save pdf
+
+    return 'success!' # replace with pdf download
+
+        
+    
+
+
+
+    
+  #  response = make_response(pdf_bytes)
+  #  response.headers['Content-Type'] = 'application/pdf'
+  #  response.headers['Content-Disposition'] = 'attachment; filename=output.pdf'
+  #  return response
 
 
 # help page for cwells
@@ -667,4 +644,4 @@ def dbcurrent_schedule():
 setup()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=80)

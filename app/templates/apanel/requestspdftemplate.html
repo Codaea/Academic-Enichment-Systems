@@ -14,7 +14,16 @@
     <p class="new-page"></p>
     <h1>ACADEMIC ADVISORY REQUEST</h1>
     <h1>YOUVE BEEN A BAD BOY {{ row[4] }}</h1>
+    <h1>PRIORITY</h1>
+    {% if row[9] == 1 %}
+        <h1>low</h1>
+    {% elif row[9] == 2 %}
+        <h1>medium</h1>
+    {% elif row[9] == 3 %}
+        <h1>high</h1>
+    {% endif %}
     <h1>GO TO {{ row[2] }} / {{ row[6] }} {{ row[7] }} </h1>
+
     <img src="data:image/png;base64,{{ row[8] }}">
     {% endfor %}
 </body>
