@@ -7,7 +7,6 @@ import json # auth checking
 import csv # for db uploading
 from io import StringIO, BytesIO # done for csv conversion to sqlite, and qr code to base64
 import time # for waiting before rerouting (unused atm)
-import pdfkit # for making pdfs from html
 import qrcode # for scanning pages
 import base64 # directly passing in images to html (for qr codes)
 from PIL import Image # proccessing pdf uploads
@@ -18,10 +17,6 @@ app = Flask(__name__)
 
 
 app.config['SECRET_KEY'] = 'your-secret-key' # make something secure, ive been using this for a while now
-#https://wkhtmltopdf.org/index.html
-
-# C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe
-
 
 
 
@@ -422,32 +417,58 @@ def printrequests():
 
     rows = cursor.fetchall() # gets selection to pass into render_template
     # [row[column]]
-    # columns start at 0. id, StudentID, requestedroom, advisoryroom, firstName, lastName, prefix, teachername, 8
+    # columns start at 0. id, StudentID, requestedroom, advisoryroom, firstName, lastName, prefix, teachername, qrcodeBase64, priority, 10
+    
+    
+    
     # rendering pdf
-    rendered = render_template('apanel/requestspdftemplate.html', rows=rows,)
-
-    return rendered
-
-    try:
 
 
-        pdfkit_config = pdfkit.configuration(wkhtmltopdf='C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe')
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.lib import colors
 
-        # Define the HTML content to convert to PDF
-        html_content = rendered
+    c = canvas.Canvas("output.pdf", pagesize=A4)
+    
 
-        # Generate the PDF from the HTML content
-        pdf = pdfkit.from_string(html_content, False, configuration=pdfkit_config)
+    pdfmetrics.registerFont(TTFont('Arial', 'arial.ttf'))
 
-        # Return the PDF as a response
-        response = app.make_response(pdf)
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = 'inline; filename=example.pdf'
-    except:
-        print('error with pdfkit!')
-        pass
+    
 
-    return response
+    for row in rows:
+
+        # do whatever is needed for this page
+
+        # title draw
+        c.setFont('Arial', 30) # increase font size to 30
+        c.drawString(105, 800, "Academic Enrichment Request")
+
+        # main body draw
+
+        c.setFont('Arial', 12) 
+        c.drawString(50, 750, f"{row[4]} {row[5]}, You Have Been Requested By {row[6]} {row[7]}. Please go to {row[2]}.")
+        c.drawString(50, 730, f"Priority Level {row[8]}, Student Id {row[1]}, ")
+
+
+        c.showPage() # add new page to pdf
+    
+
+    c.save() # save pdf
+
+    return 'success!' # replace with pdf download
+
+        
+    
+
+
+
+    
+  #  response = make_response(pdf_bytes)
+  #  response.headers['Content-Type'] = 'application/pdf'
+  #  response.headers['Content-Disposition'] = 'attachment; filename=output.pdf'
+  #  return response
 
 
 # help page for cwells
