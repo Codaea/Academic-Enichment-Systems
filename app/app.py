@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, make_response, render_template, session, redirect, url_for
+from flask import Flask, request, jsonify, make_response, render_template, session, redirect, url_for, send_file
 import sqlite3 # databasing software
 from functools import wraps # decorators
 import jwt # auth
@@ -449,7 +449,7 @@ def printrequests():
 
         c.setFont('Arial', 12) 
         c.drawString(50, 750, f"{row[4]} {row[5]}, You Have Been Requested By {row[6]} {row[7]}. Please go to {row[2]}.")
-        c.drawString(50, 730, f"Priority Level {row[8]}, Student Id {row[1]}, ")
+        c.drawString(50, 730, f"Priority Level {row[9]}, Student Id {row[1]}, ")
 
 
         c.showPage() # add new page to pdf
@@ -457,7 +457,7 @@ def printrequests():
 
     c.save() # save pdf
 
-    return 'success!' # replace with pdf download
+    return send_file('output.pdf') # send pdf to user
 
         
     
